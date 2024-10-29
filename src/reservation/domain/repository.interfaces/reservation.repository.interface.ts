@@ -6,8 +6,8 @@ interface ReservationRepositoryInterface{
     reserve(reservationEntity: ReservationEntity, manager: EntityManager): Promise<ReservationResponseCommand>
     reservedItems(reservatioEntity: ReservationRequestEntity, manager: EntityManager): Promise<ReservationResponseCommand[]>
     reservedItem(reservatioEntity: ReservationRequestEntity, manager: EntityManager): Promise<ReservationResponseCommand>
-    statusUpdate(reservationEntity: ReservationRequestEntity, manager: EntityManager): Promise<ReservationResponseCommand>
-    statusesUpdate(reservationEntity: ReservationRequestEntity, manager: EntityManager): Promise<void>
+    updateStatus(reservationEntity: ReservationRequestEntity, manager: EntityManager): Promise<ReservationResponseCommand>
+    updateStatuses(reservationEntity: ReservationRequestEntity, manager: EntityManager): Promise<void>
     itemsByStatus(reservationEntity: ReservationRequestEntity, manager: EntityManager): Promise<ReservationResponseCommand[]>
 }
 
@@ -16,7 +16,7 @@ export abstract class AbstractReservationRepository implements ReservationReposi
     abstract reserve(reservationEntity: ReservationEntity, manager: EntityManager): Promise<ReservationResponseCommand>
     abstract reservedItems(reservatioEntity: ReservationRequestEntity, manager: EntityManager): Promise<ReservationResponseCommand[]>
     abstract reservedItem(reservatioEntity: ReservationRequestEntity, manager: EntityManager): Promise<ReservationResponseCommand>
-    abstract statusUpdate(reservationEntity: ReservationRequestEntity, manager: EntityManager): Promise<ReservationResponseCommand>
-    abstract statusesUpdate(reservationEntity: ReservationRequestEntity, manager: EntityManager): Promise<void>
+    abstract updateStatus(reservationEntity: ReservationRequestEntity, manager: EntityManager): Promise<ReservationResponseCommand>
+    abstract updateStatuses(reservationEntity: ReservationRequestEntity, manager: EntityManager): Promise<void>
     abstract itemsByStatus(reservationEntity: ReservationRequestEntity, manager: EntityManager): Promise<ReservationResponseCommand[]>
 }

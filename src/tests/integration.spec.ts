@@ -97,12 +97,12 @@ describe('통합 테스트', () => {
   it('예약 동시성 테스트', async () => {
     const tests = [];
     for (let i = 1; i <= 5; i++) {
-      const test = reservationUsecase.reserve({ mainCateg: 1, subCateg: 1, minorCateg: 1, userId: i });
+      const test = reservationUsecase.reserve({ mainCategory: 1, subCategory: 1, minorCategory: 1, userId: i });
       tests.push(test);
     }
     
     await Promise.all(tests);
-    const result = await queryRunner.query('SELECT COUNT(1) as count FROM reservation WHERE mainCateg = 1 AND subCateg = 1 AND minorCateg = 1');
+    const result = await queryRunner.query('SELECT COUNT(1) as count FROM reservation WHERE mainCategory = 1 AND subCategory = 1 AND minorCategory = 1');
     expect(result[0].count).toBe(1);
   });
 
@@ -121,12 +121,12 @@ describe('통합 테스트', () => {
   it('결재 동시성 테스트', async () => {
     const tests = [];
     for (let i = 1; i <= 3; i++) {
-      const test = paymentUseCase.pay({ userId:1, price:1000, reservationId: 1 });
+      const test = paymentUseCase.pay({ userId:1, amount:1000, reservationId: 1 });
       tests.push(test);
     }
     
     await Promise.all(tests);
-    const result = await queryRunner.query('SELECT COUNT(1) as count FROM reservation WHERE mainCateg = 1 AND subCateg = 1 AND minorCateg = 1');
+    const result = await queryRunner.query('SELECT COUNT(1) as count FROM reservation WHERE mainCategory = 1 AND subCategory = 1 AND minorCategory = 1');
     expect(result[0].count).toBe(2000);
   });
 });

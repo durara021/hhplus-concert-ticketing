@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { SessionUsecase } from '../session/app/session.use-case';
-import { AbstractUserService } from '../user/domain/service.interfaces/user.service.interface';
-import { AbstractSessionService } from '../session/domain/service.interfaces/session.service.interface';
+import { SessionUsecase } from '../../session/app/session.use-case';
+import { AbstractUserService } from '../../user/domain/service.interfaces/user.service.interface';
+import { AbstractSessionService } from '../../session/domain/service.interfaces/session.service.interface';
 import { DataSource, EntityManager } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
 

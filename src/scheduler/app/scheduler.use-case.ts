@@ -9,7 +9,6 @@ export class SchedulerUsecase {
   constructor(
     private readonly schedulerService: SchedulerService,
     private readonly dataSource: DataSource,
-    //private readonly objectMapper: ObjectMapper,
   ) {}
 
   // 10분마다 대기열의 상태를 업데이트하는 작업

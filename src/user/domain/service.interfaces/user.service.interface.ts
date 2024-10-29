@@ -7,5 +7,6 @@ interface UserServiceInterface {
 }
 @Injectable()
 export abstract class AbstractUserService implements UserServiceInterface{
+  
   abstract user(userId: number, manager: EntityManager): Promise<UserEntity>
 }

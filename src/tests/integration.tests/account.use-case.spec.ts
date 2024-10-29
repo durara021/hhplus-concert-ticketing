@@ -1,14 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AccountUsecase } from '../account/app/account.use-case';
-import { AbstractAccountService } from '../account/domain/service.interfaces/account.service.interface';
-import { DataSource, EntityManager } from 'typeorm';
-import { AccountPostResponseDto as ResPostDto } from '../account/pres/dto';
-import { AccountHistoryEntity } from '../account/infra/entities';
+import { AccountUsecase } from '../../account/app/account.use-case';
+import { AbstractAccountService } from '../../account/domain/service.interfaces/account.service.interface';
+import { DataSource, EntityManager, QueryRunner } from 'typeorm';
+import { AccountPostResponseDto as ResPostDto } from '../../account/pres/dto';
+import { AccountEntity, AccountHistoryEntity } from '../../account/infra/entities';
+import { AccountModule } from '../../account/account.module';
+import { getDataSourceToken, TypeOrmModule } from '@nestjs/typeorm';
+import { AbstractAccountRepository } from '../../account/domain/repository.interfaces';
+import { AccountRepository } from '../../account/infra/repositories';
+import { AccountService } from '../../account/domain/account.service';
 
 describe('AccountUsecase - charge', () => {
   let accountUsecase: AccountUsecase;
-  let accountService: AbstractAccountService;
   let dataSource: DataSource;
+  let queryRunner: QueryRunner;
 
   // AccountService 모킹 (jest를 사용하여 함수 모킹)
   const mockAccountService = {
@@ -23,19 +28,54 @@ describe('AccountUsecase - charge', () => {
     transaction: jest.fn(),
   };
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [
+        AccountModule, 
+        TypeOrmModule.forRoot({
+          type: 'mysql',
+          host: 'localhost',
+          port: 3306,
+          username: 'root',
+          password: 'qwe124!@$',
+          database: 'concert_ticketing',
+          entities: [ AccountEntity, AccountHistoryEntity ],
+          synchronize: true,
+          extra: {
+            connectionLimit: 100,
+          },
+          //logging: true,
+        }),
+      ],
       providers: [
         AccountUsecase,
-        { provide: AbstractAccountService, useValue: mockAccountService }, // 모킹된 AccountService 주입
-        { provide: DataSource, useValue: mockDataSource },                 // 모킹된 DataSource 주입
+        { provide: AbstractAccountService, useClass: AccountService },
+        { provide: AbstractAccountRepository, useClass: AccountRepository },
+        { provide: DataSource, useValue: mockDataSource }, 
       ],
     }).compile();
 
-    // 모킹된 의존성 받기
     accountUsecase = module.get<AccountUsecase>(AccountUsecase);
-    accountService = module.get<AbstractAccountService>(AbstractAccountService);
-    dataSource = module.get<DataSource>(DataSource);
+
+    dataSource = module.get<DataSource>(getDataSourceToken());
+
+    if (!dataSource.isInitialized) {
+      await dataSource.initialize();
+    }
+
+    // QueryRunner 생성
+    queryRunner = dataSource.createQueryRunner();
+    await queryRunner.connect();
+
+    // 테스트 전 데이터 초기화
+    //await queryRunner.query('DELETE FROM reservation');
+  });
+  
+  afterAll(async () => {
+    await queryRunner.release();
+    if (dataSource.isInitialized) {
+      await dataSource.destroy();
+    }
   });
 
   it('포인트를 충전하고 ResPostDto를 반환해야 한다', async () => {
@@ -64,12 +104,7 @@ describe('AccountUsecase - charge', () => {
     });
 
     // 기대되는 응답 DTO
-    const expectedResponse = new ResPostDto();
-    expectedResponse.userId = mockRecordResult.userId;
-    expectedResponse.amount = mockRecordResult.amount;
-    expectedResponse.stat =  mockRecordResult.stat;
-    expectedResponse.regDate = mockRecordResult.regDate;
-    
+    const expectedResponse = new ResPostDto({userId: mockRecordResult.userId, amount: mockRecordResult.amount, stat: mockRecordResult.stat, regDate: mockRecordResult.regDate});
 
     // 실제 charge 메서드 실행
     const result:ResPostDto = await accountUsecase.charge({ userId, amount });

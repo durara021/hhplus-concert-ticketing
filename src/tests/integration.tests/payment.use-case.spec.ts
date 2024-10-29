@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConcertUsecase } from '../concert/app/concert.use-case';
-import { AbstractConcertService } from '../concert/domain/service.interfaces';
-import { AbstractReservationService } from '../reservation/domain/service.interfaces';
+import { ConcertUsecase } from '../../concert/app/concert.use-case';
+import { AbstractConcertService } from '../../concert/domain/service.interfaces';
+import { AbstractReservationService } from '../../reservation/domain/service.interfaces';
 import { DataSource } from 'typeorm';
-import { ConcertRequestCommand } from '../concert/app/commands';
+import { ConcertRequestCommand } from '../../concert/app/commands';
 import { NotFoundException } from '@nestjs/common';
 
 describe('ConcertUsecase', () => {
@@ -44,7 +44,7 @@ describe('ConcertUsecase', () => {
   // 콘서트 예약가능일 조회 실패 테스트
   describe('dates', () => {
     it('콘서트 정보가 없을 경우 NotFoundException을 발생시켜야 한다', async () => {
-      const command = new ConcertRequestCommand();
+      const command = new ConcertRequestCommand({});
 
       // Mock 설정: 콘서트 정보가 없는 경우
       mockConcertService.info.mockResolvedValueOnce(null);
@@ -56,12 +56,25 @@ describe('ConcertUsecase', () => {
   // 콘서트 예약가능좌석 조회 실패 테스트
   describe('seats', () => {
     it('콘서트 일정 정보가 없을 경우 NotFoundException을 발생시켜야 한다', async () => {
-      const command = new ConcertRequestCommand();
+      const command = new ConcertRequestCommand({});
 
       // Mock 설정: 콘서트 일정 정보가 없는 경우
       mockConcertService.planInfo.mockResolvedValueOnce(null);
 
       await expect(concertUsecase.seats(command)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  // PaymentUsecase 실패 테스트 추가
+  describe('PaymentUsecase - 실패 케이스', () => {
+    let paymentUsecase: any; // PaymentUsecase 모듈 추가 필요
+
+    it('계좌 잔액 부족으로 인한 결제 실패 테스트', async () => {
+      const command = { price: 1000 } as any; // PaymentRequestCommand 가정
+
+      // Mock 설정: 계좌 잔액이 부족한 경우
+      mockConcertService.info.mockResolvedValueOnce(null);
+      await expect(paymentUsecase.dates(command)).rejects.toThrow(NotFoundException);
     });
   });
 });

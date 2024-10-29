@@ -16,7 +16,7 @@ export class SessionRepository implements AbstractSessionRepository {
     );
   }
   
-  async expire(sessionEntity: SessionEntity, manager:EntityManager): Promise<SessionEntity> {
+  async updateStatus(sessionEntity: SessionEntity, manager:EntityManager): Promise<SessionEntity> {
     await manager.update(SessionEntity, 
       { uuid : sessionEntity.uuid },
       { status: sessionEntity.status }

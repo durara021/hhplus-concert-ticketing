@@ -1,12 +1,14 @@
 import { ApiProperty } from "@nestjs/swagger";
 
+type Part = Partial<ReservationPostResponseDto>;
+
 export class ReservationPostResponseDto {
     @ApiProperty({ description: '예약 구분' })
-    mainCateg: number;
+    mainCategory: number;
     @ApiProperty({ description: '예약 대분류 id' })
-    subCateg: number;
+    subCategory: number;
     @ApiProperty({ description: '예약 소분류 id' })
-    minorCateg: number;
+    minorCategory: number;
     @ApiProperty({ description: '예약자' })
     userId: number;
     @ApiProperty({ description: '등록일' })
@@ -15,4 +17,19 @@ export class ReservationPostResponseDto {
     status: string;
     @ApiProperty({ description: '수정일' })
     modDate: Date | null;
+
+      // of 메서드: Partial 타입을 이용해 객체를 생성
+      static of(partial: Part): ReservationPostResponseDto;
+      static of(partial: Part[]): ReservationPostResponseDto[];
+      static of(
+        partial: Part | Part[]
+      ): ReservationPostResponseDto | ReservationPostResponseDto[] {
+          if(Array.isArray(partial)) return partial.map(partial => this.of(partial));
+          return new ReservationPostResponseDto({ ...partial });
+      }
+
+    // 생성자에서 전개 연산자를 사용해 필드 초기화
+    constructor(partial: Partial<ReservationPostResponseDto>) {
+        Object.assign(this, partial);
+    }
 }

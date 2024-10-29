@@ -21,7 +21,7 @@ export class SessionUsecase {
             //세션 생성
             const session = await this.sessionService.create(user.id, manager);
 
-            return new ResPostDto(session.uuid, session.userId, new Date(session.regDate));
+            return ResPostDto.of({uuid:session.uuid, userId:session.userId, regDate:new Date(session.regDate)});
         });
     }
 

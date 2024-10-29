@@ -26,7 +26,7 @@ export class SessionController {
     const createResult = await this.sessionUsecase.create(parseInt(userId));
     response.cookie('sessionId', createResult.uuid, { httpOnly: true, secure: true });
 
-    response.status(201).send(new ResPostDto(createResult.uuid, createResult.userId, createResult.regDate));
+    response.status(201).send(ResPostDto.of(createResult));
   }
 
 }

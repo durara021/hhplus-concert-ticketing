@@ -3,7 +3,6 @@ import { ConcertUsecase } from '../app/concert.use-case';
 import { ConcertGetResponseDto as ResGetDto } from './dto';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ConcertGetRequestDto } from './dto/concert.get.request.dto';
-import { ObjectMapper } from '../../common/mapper/object-mapper';
 import { ConcertRequestCommand } from '../app/commands/concert.request.command';
 
 @ApiTags('콘서트 API')
@@ -12,7 +11,6 @@ export class ConcertController {
   
   constructor(
     private readonly concertUsecase: ConcertUsecase,
-    private readonly objectMapper: ObjectMapper,
   ) {}
 
 
@@ -26,7 +24,7 @@ export class ConcertController {
   concertDates(
     @Param() params: ConcertGetRequestDto
   ): Promise<ResGetDto> {
-    return this.concertUsecase.dates(this.objectMapper.mapObject(params, ConcertRequestCommand));
+    return this.concertUsecase.dates(ConcertRequestCommand.of(params));
   }
 
   @Get('/:concertId/dates/:date/seats')
@@ -40,7 +38,7 @@ export class ConcertController {
   concertSeats(
     @Param() params: ConcertGetRequestDto
   ): Promise<ResGetDto> {
-    return this.concertUsecase.seats(this.objectMapper.mapObject(params, ConcertRequestCommand));
+    return this.concertUsecase.seats(ConcertRequestCommand.of(params));
   }
 
 }

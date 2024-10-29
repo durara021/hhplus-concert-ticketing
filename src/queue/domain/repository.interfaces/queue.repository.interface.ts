@@ -7,7 +7,7 @@ import { EntityManager } from "typeorm";
 interface QueueRepositoryInterface{
     enter(queueEntity: QueueEntity, manager:EntityManager): Promise<QueueResponseModel>
     lastActiveUser(manager:EntityManager): Promise<QueueResponseModel>
-    expire(queueEntity: QueueEntity, manager:EntityManager): Promise<QueueResponseModel>
+    updateStatus(queueEntity: QueueEntity, manager:EntityManager): Promise<QueueResponseModel>
     myQueueInfo(queueEntity: QueueEntity, manager:EntityManager): Promise<QueueResponseModel>
 }
 
@@ -15,6 +15,6 @@ interface QueueRepositoryInterface{
 export abstract class AbstractQueueRepository implements QueueRepositoryInterface{
     abstract enter(queueEntity: QueueEntity, manager:EntityManager): Promise<QueueResponseModel>
     abstract lastActiveUser(manager:EntityManager): Promise<QueueResponseModel>
-    abstract expire(queueEntity: QueueEntity, manager:EntityManager): Promise<QueueResponseModel>
+    abstract updateStatus(queueEntity: QueueEntity, manager:EntityManager): Promise<QueueResponseModel>
     abstract myQueueInfo(queueEntity: QueueEntity, manager:EntityManager): Promise<QueueResponseModel>
 }

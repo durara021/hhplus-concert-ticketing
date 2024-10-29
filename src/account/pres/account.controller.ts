@@ -1,5 +1,4 @@
 import { Body, Controller, Get, Param, Patch } from '@nestjs/common';
-import { ObjectMapper } from '../../common/mapper/object-mapper';
 import { AccountUsecase } from '../app/account.use-case';
 import { AccountGetResponseDto, AccountPatchRequestDto, AccountPostResponseDto } from './dto';
 import { ApiBody, ApiCreatedResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
@@ -11,7 +10,6 @@ export class AccountController {
   
   constructor(
     private readonly accountUsecase: AccountUsecase,
-    private readonly objectMapper: ObjectMapper,
   ) {}
 
 
@@ -26,7 +24,7 @@ export class AccountController {
   charge(
     @Body() body: AccountPatchRequestDto,
   ): Promise<AccountPostResponseDto> {
-    return this.accountUsecase.charge(this.objectMapper.mapObject(body, AccountCommand));
+    return this.accountUsecase.charge(AccountCommand.of(body));
   }
 
   @Get('/:userId/points')
@@ -39,7 +37,7 @@ export class AccountController {
   point(
     @Body() body: AccountPatchRequestDto,
   ): Promise<AccountGetResponseDto> {
-    return this.accountUsecase.point(this.objectMapper.mapObject(body, AccountCommand));
+    return this.accountUsecase.point(AccountCommand.of(body));
   }
 
 }

@@ -12,9 +12,7 @@ export class SchedulerService {
   ) {}
 
   async pendingUser(capacity: number, status: string, manager: EntityManager): Promise<number[]> {
-    const queueEntity: QueueSchedulerEntity = new QueueSchedulerEntity();
-    queueEntity.capacity = capacity;
-    queueEntity.status = status;
+    const queueEntity: QueueSchedulerEntity = QueueSchedulerEntity.of({capacity:capacity, status:status});
     
     // capacity 만큼의 유저 추출
     const waitingUsers = await this.queueShcedulerRepository.pendingUsers(queueEntity, manager);
@@ -23,9 +21,7 @@ export class SchedulerService {
   }
 
   async queueStatusesUpdate(ids: number[], status: string, manager: EntityManager): Promise<number> {
-    const queueEntity: QueueSchedulerEntity = new QueueSchedulerEntity();
-    queueEntity.ids  = ids;
-    queueEntity.status = status;
+    const queueEntity: QueueSchedulerEntity = QueueSchedulerEntity.of({ids:ids, status: status});
 
     const updateReuslt = await this.queueShcedulerRepository.updateStatus(queueEntity, manager);
 
@@ -33,8 +29,7 @@ export class SchedulerService {
   }
 
   async tempItems(status: string, rule: number, manager: EntityManager): Promise<number[]> {
-    const reservationEntity: ReservationSchedulerEntity = new ReservationSchedulerEntity();
-    reservationEntity.status = status;
+    const reservationEntity: ReservationSchedulerEntity = ReservationSchedulerEntity.of({status:status});
 
     const items = await this.reservationShcedulerRepository.items(reservationEntity, manager);
 
@@ -46,10 +41,7 @@ export class SchedulerService {
   }
 
   async reservationStatusesUpdate(ids: number[], status: string, manager: EntityManager): Promise<number> {
-    const queueEntity: QueueSchedulerEntity = new QueueSchedulerEntity();
-    queueEntity.ids  = ids;
-    queueEntity.status = status;
-
+    const queueEntity: QueueSchedulerEntity = QueueSchedulerEntity.of({ids:ids, status:status});
     const updateReuslt = await this.reservationShcedulerRepository.updateStatus(queueEntity, manager);
 
     return updateReuslt;

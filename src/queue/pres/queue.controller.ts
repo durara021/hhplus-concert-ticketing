@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Post, Req } from '@nestjs/common';
-import { QueuePostResponseDto, QueueGetResponseDto, QueueGetRequestDto } from './dto';
+import { Body, Controller, Get, Post } from '@nestjs/common';
+import { QueuePostResponseDto, QueueGetResponseDto, QueueGetRequestDto, QueuePostRequestDto } from './dto';
 import { QueueRequestCommand } from '../app/commands';
 import { QueueUsecase } from '../app/queue.use-case';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -21,9 +21,9 @@ export class QueueController {
   })
   //@UseGuards(SessionGuard)
   async enter(
-    @Body() body: QueuePostResponseDto
+    @Body() body: QueuePostRequestDto
   ): Promise<QueuePostResponseDto> {
-    return await this.QueueUsecase.enter(this.objectMapper.mapObject(body, QueueRequestCommand));
+    return await this.QueueUsecase.enter(QueueRequestCommand.of(body));
   }
 
   @Get('/positions')
@@ -36,6 +36,6 @@ export class QueueController {
   async myPosition(
     @Body() body: QueueGetRequestDto
   ): Promise<QueueGetResponseDto> {
-    return await this.QueueUsecase.myPosition(this.objectMapper.mapObject(body, QueueRequestCommand));
+    return await this.QueueUsecase.myPosition(QueueRequestCommand.of(body));
   }
 }
