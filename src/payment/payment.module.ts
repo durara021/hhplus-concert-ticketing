@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PaymentService } from './domain/payment.service';
 import { PaymentController } from './pres/payment.controller';
 import { PaymentEntity } from './infra/entities';
-import { AbstractPaymentService } from './domain/payemnt.service.interfaces';
+import { AbstractPaymentService } from './domain/service.interfaces';
 import { AbstractPaymentRepository } from './domain/repository.interfaces';
 import { PaymentRepository } from './infra/payment.repositories/payment.repository';
 import { PaymentUsecase } from './app/payment.use-case';

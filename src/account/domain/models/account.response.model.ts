@@ -7,7 +7,8 @@ export class AccountResponseModel {
   amount: number;  // 충전하는 point 양
   stat: string;    // 충전/사용 구분
   regDate: Date;   // 등록일
-
+  version: number;
+    
   // of 메서드: Partial 타입을 이용해 객체를 생성
   static of(partial: Part): AccountResponseModel;
   static of(partial: Part[]): AccountResponseModel[];

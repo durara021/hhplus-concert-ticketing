@@ -25,7 +25,7 @@ export class QueueRepository implements AbstractQueueRepository{
     }));
   }
 
-  async expire(queueEntity: QueueEntity, manager: EntityManager): Promise<QueueResponseModel> {
+  async updateStatus(queueEntity: QueueEntity, manager: EntityManager): Promise<QueueResponseModel> {
     await manager.update(QueueEntity, 
       { userId: queueEntity.userId },
       { status: queueEntity.status }

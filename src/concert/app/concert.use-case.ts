@@ -30,7 +30,7 @@ export class ConcertUsecase {
             //콘서트 일정의 예약 가능한 자리 조회
             const reservationRequestModel = new ReservationRequestModel({mainCategory: 1, subCategory: planInfo.id});
             
-            const seats = (await this.reservationService.reservedItems(reservationRequestModel, manager)).map(seat => seat.minorCategory);
+            const seats = (await this.reservationService.reservedItems(reservationRequestModel, manager)).minorCategories;
             const concertModel = ConcertRequestModel.of(planInfo);
             concertModel.updateSeats(seats);
             const availableSeats = await this.concertService.availableSeats(concertModel);

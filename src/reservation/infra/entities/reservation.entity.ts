@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, UpdateDateColumn, CreateDateColumn, Unique } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, UpdateDateColumn, CreateDateColumn, Unique, VersionColumn } from 'typeorm';
 
 type Part = Partial<ReservationEntity>;
 
@@ -15,19 +15,25 @@ export class ReservationEntity {
   subCategory: number; // 예약 종류( 콘서트 일정, 숙박시설 등 id )
   
   @Column()
-  minorCategory: number // 예약 종류( 콘서트 자리, 숙박시설 호실 등 id)
+  minorCategory: number; // 예약 종류( 콘서트 자리, 숙박시설 호실 등 id)
   
-  @Column()
+  @Column({ nullable: true })
   userId: number; // 예약자 id
   
   @CreateDateColumn()
   regDate: Date; // 최초 예약일
   
-  @Column({default: 'temp'})
+  @Column({default: 'available'})
   status: string; // 예약 상태 = 임시/확정/취소
   
+  @Column({default: 10000})
+  price: number;
+
   @UpdateDateColumn()
   modDate: Date; // 상태 변경일
+
+  @Column({default: 0})
+  version: number;
 
   // of 메서드: Partial 타입을 이용해 객체를 생성
   static of(partial: Part): ReservationEntity;
@@ -35,7 +41,7 @@ export class ReservationEntity {
   static of(
     partial: Part | Part[]
   ): ReservationEntity | ReservationEntity[] {
-      if(Array.isArray(partial)) return partial.map(partial => this.of(partial));
+      if(Array.isArray(partial)) return partial.map(partial => this.of(partial)) as ReservationEntity[];
       return new ReservationEntity({ ...partial });
   }
   

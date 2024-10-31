@@ -1,8 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { SessionGuard } from './common/guard/session.guard';
-import { SessionService } from './session/domain/session.service';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

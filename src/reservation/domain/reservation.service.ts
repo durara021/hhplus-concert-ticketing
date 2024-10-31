@@ -18,12 +18,17 @@ export class ReservationService implements AbstractReservationService{
   async reserve(model: ReservationRequestModel, manager?: EntityManager): Promise<ReservationResponseCommand> {
     const executeReserve = async (manager: EntityManager): Promise<ReservationResponseCommand> => {
         //예약 확인
-        const reservedItem = await this.reservationRepository.reservedItem(ReservationRequestEntity.of(model), manager);
-        if(reservedItem) throw new Error("이미 예약된 아이템입니다.");
+        model.updateStatus('available');
+        const item = await this.reservationRepository.item(ReservationRequestEntity.of(model), manager);
+        
+        if(!item) throw new NotFoundException("이미 예약된 아이템입니다.");
         
         //임시 예약
         model.updateStatus('temp');
-        return ReservationResponseCommand.of(await this.reservationRepository.reserve(ReservationEntity.of(model), manager));
+        model.updateVersion(item.version);
+        await this.reservationRepository.reserve(ReservationEntity.of(model), manager)
+
+        return ReservationResponseCommand.of(item);
     }
     return manager ? executeReserve(manager) : this.dataSource.transaction(executeReserve);
   }
@@ -31,7 +36,7 @@ export class ReservationService implements AbstractReservationService{
   //예약 조회
   async reservation(model: ReservationRequestModel, manager?: EntityManager): Promise<ReservationResponseCommand> {
     const executeReservation = async (manager: EntityManager): Promise<ReservationResponseCommand> => {
-      const result = await this.reservationRepository.reservedItem(ReservationRequestEntity.of(model), manager);
+      const result = await this.reservationRepository.item(ReservationRequestEntity.of(model), manager);
       if(!result) throw new NotFoundException('예약된 아이템이 존재하지 않습니다.');
       return ReservationResponseCommand.of(result);
     }
@@ -39,7 +44,7 @@ export class ReservationService implements AbstractReservationService{
   }
   
   //상태 변경
-  async UpdateStatus(model: ReservationRequestModel, manager?: EntityManager): Promise<ReservationResponseCommand> {
+  async updateStatus(model: ReservationRequestModel, manager?: EntityManager): Promise<ReservationResponseCommand> {
     const executeUpdateStatus = async (manager: EntityManager): Promise<ReservationResponseCommand> => {
       const updateResult = await this.reservationRepository.updateStatus(ReservationRequestEntity.of(model), manager);
       if(!updateResult) throw new ConflictException('상태 업데이트에 실패했습니다.');

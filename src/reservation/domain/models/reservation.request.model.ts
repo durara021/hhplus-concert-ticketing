@@ -7,13 +7,22 @@ export class ReservationRequestModel {
     minorCategory: number;          // 소분류
     minorCategories: number[];          // 소분류
     status: string;              // 예약 상태
-      
+    version: number;
+
+    updateId(newId: number) {
+        this.id = newId;
+    }
+    
     updateStatus(newStatus: string) {
         this.status = newStatus;
     }
 
     updateMinorCategories(newMinorCategories: number[]) {
         this.minorCategories = newMinorCategories;
+    }
+
+    updateVersion(newVersion: number) {
+        this.version = newVersion;
     }
 
   // of 메서드: Partial 타입을 이용해 객체를 생성

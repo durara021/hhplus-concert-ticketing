@@ -9,6 +9,7 @@ export class ReservationResponseModel {
   regDate: Date; // 최초 예약일
   status: string; // 예약 상태 = 임시/확정/취소
   modDate: Date ; // 상태 변경일
+  version: number;  
   
   // of 메서드: Partial 타입을 이용해 객체를 생성
   static of(partial: Part): ReservationResponseModel;

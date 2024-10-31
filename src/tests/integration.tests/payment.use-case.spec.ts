@@ -1,80 +1,97 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConcertUsecase } from '../../concert/app/concert.use-case';
-import { AbstractConcertService } from '../../concert/domain/service.interfaces';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { DataSource, QueryRunner, Repository } from 'typeorm';
+import { PaymentUsecase } from '../../payment/app/payment.use-case';
+import { AbstractPaymentService } from '../../payment/domain/service.interfaces';
+import { AbstractPaymentRepository } from '../../payment/domain/repository.interfaces';
+import { PaymentEntity } from '../../payment/infra/entities';
+import { ReservationEntity } from '../../reservation/infra/entities';
+import { PaymentModule } from '../../payment/payment.module';
+import { PaymentRepository } from '../../payment/infra/payment.repositories/payment.repository';
+import { PaymentService } from '../../payment/domain/payment.service';
+import { baseDBConfig } from '../../db.config';
+import { PaymentRequestCommand } from '../../payment/app/commands'
+import { AccountEntity, AccountHistoryEntity } from '../../account/infra/entities';
+import { AbstractAccountService } from '../../account/domain/service.interfaces';
+import { AccountService } from '../../account/domain/account.service';
+import { AccountHistoryRepository, AccountRepository } from '../../account/infra/repositories';
+import { AbstractAccountHistoryRepository, AbstractAccountRepository } from '../../account/domain/repository.interfaces';
 import { AbstractReservationService } from '../../reservation/domain/service.interfaces';
-import { DataSource } from 'typeorm';
-import { ConcertRequestCommand } from '../../concert/app/commands';
-import { NotFoundException } from '@nestjs/common';
+import { ReservationService } from '../../reservation/domain/reservation.service';
+import { ReservationRepository } from '../../reservation/infra/repositories/reservation.repository';
+import { AbstractReservationRepository } from '../../reservation/domain/repository.interfaces';
+import { AbstractQueueService } from '../../queue/domain/service.interfaces';
+import { QueueService } from '../../queue/domain/queue.service';
+import { QueueRepository } from '../../queue/infra/repositories/queue.repository';
+import { AbstractQueueRepository } from '../../queue/domain/repository.interfaces';
+import { QueueEntity } from '../../queue/infra/entities';
 
-describe('ConcertUsecase', () => {
-  let concertUsecase: ConcertUsecase;
-  let mockConcertService: jest.Mocked<AbstractConcertService>;
-  let mockReservationService: jest.Mocked<AbstractReservationService>;
-  let mockDataSource: jest.Mocked<DataSource>;
+describe('PaymentUsecase', () => {
+  let paymentUsecase: PaymentUsecase;
+  let dataSource: DataSource;
+  let queryRunner: QueryRunner;
+  let repository: Repository<ReservationEntity>;
+  let accountRepository: Repository<AccountEntity>;
 
-  beforeEach(async () => {
-    mockConcertService = {
-      info: jest.fn(),
-      planInfos: jest.fn(),
-      planInfo: jest.fn(),
-      availableSeats: jest.fn(),
-    } as jest.Mocked<AbstractConcertService>;
-
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [
+        PaymentModule,
+        TypeOrmModule.forRoot({
+          ...baseDBConfig,
+          entities: [ PaymentEntity, AccountEntity, AccountHistoryEntity, ReservationEntity, QueueEntity ],
+        }),
+        TypeOrmModule.forFeature([ PaymentEntity, AccountEntity, AccountHistoryEntity, ReservationEntity, QueueEntity ]),
+      ],
       providers: [
-        ConcertUsecase,
-        {
-          provide: AbstractConcertService,
-          useValue: mockConcertService,
-        },
-        {
-          provide: AbstractReservationService,
-          useValue: mockReservationService,
-        },
-        {
-          provide: DataSource,
-          useValue: mockDataSource,
-        },
+        PaymentUsecase,
+        { provide: AbstractAccountService, useClass: AccountService },
+        { provide: AbstractAccountRepository, useClass: AccountRepository },
+        { provide: AbstractAccountHistoryRepository, useClass: AccountHistoryRepository },
+        { provide: AbstractReservationService, useClass: ReservationService },
+        { provide: AbstractReservationRepository, useClass: ReservationRepository },
+        { provide: AbstractPaymentService, useClass: PaymentService },
+        { provide: AbstractPaymentRepository, useClass: PaymentRepository },
+        { provide: AbstractQueueService, useClass: QueueService },
+        { provide: AbstractQueueRepository, useClass: QueueRepository },
       ],
     }).compile();
 
-    concertUsecase = module.get<ConcertUsecase>(ConcertUsecase);
+    paymentUsecase = module.get<PaymentUsecase>(PaymentUsecase);
+    dataSource = module.get<DataSource>(DataSource);
+
+    if (!dataSource.isInitialized) {
+      await dataSource.initialize();
+    }
+
+    // QueryRunner 생성 및 연결
+    queryRunner = dataSource.createQueryRunner();
+    await queryRunner.connect();
+    repository = queryRunner.manager.getRepository(ReservationEntity);
+    accountRepository = queryRunner.manager.getRepository(AccountEntity);
+
+    await queryRunner.query('TRUNCATE TABLE payment');
+    await queryRunner.query('TRUNCATE TABLE account');
+    await queryRunner.query('TRUNCATE TABLE reservation');
   });
 
-  // 콘서트 예약가능일 조회 실패 테스트
-  describe('dates', () => {
-    it('콘서트 정보가 없을 경우 NotFoundException을 발생시켜야 한다', async () => {
-      const command = new ConcertRequestCommand({});
+  afterAll(async () => {
+    // QueryRunner 연결 해제
+    await queryRunner.release();
+    await dataSource.destroy();
+  });
 
-      // Mock 설정: 콘서트 정보가 없는 경우
-      mockConcertService.info.mockResolvedValueOnce(null);
+  it('결재', async () => {
+    // account테이블에 1번 user 추가
+    await repository.save(ReservationEntity.of({ mainCategory: 1, subCategory: 1, minorCategory: 1, status: 'temp', userId: 1 }));
+    await accountRepository.save(AccountEntity.of({ userId: 1, balance: 100000, id: 1 }));
 
-      await expect(concertUsecase.dates(command)).rejects.toThrow(NotFoundException);
+    const promises = Array.from({ length: 1 }).map(async (_, idx) => {
+      await paymentUsecase.pay(PaymentRequestCommand.of({ reservationId: 1, amount: 10000, userId: 1}));
     });
-  });
 
-  // 콘서트 예약가능좌석 조회 실패 테스트
-  describe('seats', () => {
-    it('콘서트 일정 정보가 없을 경우 NotFoundException을 발생시켜야 한다', async () => {
-      const command = new ConcertRequestCommand({});
+    await Promise.all(promises);
 
-      // Mock 설정: 콘서트 일정 정보가 없는 경우
-      mockConcertService.planInfo.mockResolvedValueOnce(null);
+  }, 1000);
 
-      await expect(concertUsecase.seats(command)).rejects.toThrow(NotFoundException);
-    });
-  });
-
-  // PaymentUsecase 실패 테스트 추가
-  describe('PaymentUsecase - 실패 케이스', () => {
-    let paymentUsecase: any; // PaymentUsecase 모듈 추가 필요
-
-    it('계좌 잔액 부족으로 인한 결제 실패 테스트', async () => {
-      const command = { price: 1000 } as any; // PaymentRequestCommand 가정
-
-      // Mock 설정: 계좌 잔액이 부족한 경우
-      mockConcertService.info.mockResolvedValueOnce(null);
-      await expect(paymentUsecase.dates(command)).rejects.toThrow(NotFoundException);
-    });
-  });
 });

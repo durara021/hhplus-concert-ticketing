@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, EntityManager } from 'typeorm';
 import { ReservationPostResponseDto as ResPostDto } from "../pres/dto";
 import { AbstractReservationService } from '../domain/service.interfaces/reservation.service.interface';
 import { ReservationRequestCommand } from './commands';
@@ -10,7 +9,6 @@ export class ReservationUsecase {
 
     constructor(
         private readonly reservationService: AbstractReservationService,
-        private readonly dataSource: DataSource,
     ) {}
 
     //임시 예약

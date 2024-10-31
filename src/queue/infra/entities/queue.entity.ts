@@ -14,7 +14,7 @@ export class QueueEntity {
   uuid: string;  // 세션 식별을 위한 UUID
 
   @Index()
-  @Column()
+  @Column({default: 'wait'})
   status: string;
 
   @CreateDateColumn()

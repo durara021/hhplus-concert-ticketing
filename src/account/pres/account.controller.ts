@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, Patch } from '@nestjs/common';
 import { AccountUsecase } from '../app/account.use-case';
 import { AccountGetResponseDto, AccountPatchRequestDto, AccountPostResponseDto } from './dto';
 import { ApiBody, ApiCreatedResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
-import { AccountCommand } from '../app/commands/account.request.command';
+import { AccountRequestCommand } from '../app/commands/account.request.command';
 
 @ApiTags('계좌 API') 
 @Controller('accounts')
@@ -24,7 +24,7 @@ export class AccountController {
   charge(
     @Body() body: AccountPatchRequestDto,
   ): Promise<AccountPostResponseDto> {
-    return this.accountUsecase.charge(AccountCommand.of(body));
+    return this.accountUsecase.charge(AccountRequestCommand.of(body));
   }
 
   @Get('/:userId/points')
@@ -37,7 +37,7 @@ export class AccountController {
   point(
     @Body() body: AccountPatchRequestDto,
   ): Promise<AccountGetResponseDto> {
-    return this.accountUsecase.point(AccountCommand.of(body));
+    return this.accountUsecase.point(AccountRequestCommand.of(body));
   }
 
 }

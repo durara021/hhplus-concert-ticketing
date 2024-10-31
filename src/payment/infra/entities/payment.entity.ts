@@ -1,24 +1,19 @@
-import { Injectable } from "@nestjs/common";
-import { Column, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 type Part = Partial<PaymentEntity>;
 
-@Injectable()
+@Entity('payment')
 export class PaymentEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
   userId: number;
-
-  @Column()
-  reservationId: number;
-
-  @Column({default: Date.now()})
+  
+  @CreateDateColumn()
   regDate: Date;
 
   // of 메서드: Partial 타입을 이용해 객체를 생성
-
   static of(partial: Part): PaymentEntity;
   static of(partial: Part[]): PaymentEntity[];
   static of(

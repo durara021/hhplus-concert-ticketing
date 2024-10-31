@@ -39,36 +39,44 @@ describe('ReservationService', () => {
     dataSource = module.get<DataSource>(DataSource);
   });
 
-  it('이미 예약된 아이템일 때 에러를 던져야 한다.', async () => {
-    const model = new ReservationRequestModel({mainCategory:1, subCategory: 1, minorCategory: 1});
-    reservationRepository.reservedItem = async () => ReservationResponseCommand.of(model);
-
-    await expect(service.reserve(model)).rejects.toThrow('이미 예약된 아이템입니다.');
-  });
-
-  it('임시 예약이 실패할 경우 에러를 던져야 한다.', async () => {
-    const model = new ReservationRequestModel({mainCategory:1, subCategory: 1, minorCategory: 1});
-    reservationRepository.reservedItem = async () => null;  // 예약되지 않은 상태로 설정
-
-    await expect(service.reserve(model)).rejects.toThrow('임시 예약 실패');
-  });
-
-  it('예약된 아이템이 없을 때 NotFoundException을 던져야 한다.', async () => {
-    const model = new ReservationRequestModel({mainCategory:1, subCategory: 1, minorCategory: 1});
-
-    await expect(service.reservation(model)).rejects.toThrow(NotFoundException);
-  });
-
-  it('상태 변경이 실패하면 에러를 던져야 한다.', async () => {
-    const model = new ReservationRequestModel({mainCategory:1, subCategory: 1, minorCategory: 1});
+  describe('reserve 실패 케이스', () => {
+    it('이미 예약된 아이템일 때 에러를 던져야 한다.', async () => {
+      const model = new ReservationRequestModel({mainCategory:1, subCategory: 1, minorCategory: 1});
+      reservationRepository.reservedItem = async () => ReservationResponseCommand.of(model);
+      
+      await expect(service.reserve(model)).rejects.toThrow('이미 예약된 아이템입니다.');
+    });
     
-    await expect(service.UpdateStatus(model)).rejects.toThrow(ConflictException);
+    it('임시 예약이 실패할 경우 에러를 던져야 한다.', async () => {
+      const model = new ReservationRequestModel({mainCategory:1, subCategory: 1, minorCategory: 1});
+      reservationRepository.reservedItem = async () => null;  // 예약되지 않은 상태로 설정
+      
+      await expect(service.reserve(model)).rejects.toThrow('임시 예약 실패');
+    });
+  });
+  
+  describe('reservation 실패 케이스', () => {
+    it('예약된 아이템이 없을 때 NotFoundException을 던져야 한다.', async () => {
+      const model = new ReservationRequestModel({mainCategory:1, subCategory: 1, minorCategory: 1});
+      
+      await expect(service.reservation(model)).rejects.toThrow(NotFoundException);
+    });
+  });
+  
+  describe('UpdateStatus 실패 케이스', () => {
+    it('상태 변경이 실패하면 에러를 던져야 한다.', async () => {
+      const model = new ReservationRequestModel({mainCategory:1, subCategory: 1, minorCategory: 1});
+      
+      await expect(service.UpdateStatus(model)).rejects.toThrow(ConflictException);
+    });
   });
 
-  it('예약된 아이템 조회가 실패하면 빈배열을 반환해야 한다.', async () => {
-    const model = new ReservationRequestModel({mainCategory:1, subCategory: 1, minorCategory: 1});
+  describe('reservedItems 실패 케이스', () => {
+    it('예약된 아이템 조회가 실패하면 빈배열을 반환해야 한다.', async () => {
+      const model = new ReservationRequestModel({mainCategory:1, subCategory: 1, minorCategory: 1});
 
-    await expect((await service.reservedItems(model)).minorCategories).toEqual([]);
+      await expect((await service.reservedItems(model)).minorCategories).toEqual([]);
+    });
   });
 
 });

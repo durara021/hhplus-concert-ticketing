@@ -3,14 +3,12 @@ import { QueuePostResponseDto, QueueGetResponseDto, QueueGetRequestDto, QueuePos
 import { QueueRequestCommand } from '../app/commands';
 import { QueueUsecase } from '../app/queue.use-case';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ObjectMapper } from '../../common/mapper/object-mapper';
 
 @ApiTags('대기열 API') // 컨트롤러 태그 설정
 @Controller('queues')
 export class QueueController {
   constructor(
     private readonly QueueUsecase: QueueUsecase,
-    private readonly objectMapper: ObjectMapper,
   ) {}
 
   @Post('')

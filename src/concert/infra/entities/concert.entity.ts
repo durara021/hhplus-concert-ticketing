@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 
 type Part = Partial<ConcertEntity>;
 
@@ -10,7 +10,7 @@ export class ConcertEntity {
   @Column()
   title: string;  // 콘서트명
 
-  @Column()
+  @CreateDateColumn()
   regDate: Date; // 등록일
   // of 메서드: Partial 타입을 이용해 객체를 생성
 
