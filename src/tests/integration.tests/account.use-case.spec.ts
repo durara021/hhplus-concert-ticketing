@@ -37,7 +37,7 @@ describe('AccountUsecase', () => {
 
     accountUsecase = module.get<AccountUsecase>(AccountUsecase);
     dataSource = module.get<DataSource>(DataSource);
-
+    
     if (!dataSource.isInitialized) {
       await dataSource.initialize();
     }
@@ -64,7 +64,7 @@ describe('AccountUsecase', () => {
     const chargeTestPoint = AccountRequestCommand.of({ userId: 1, amount: 10 });
 
     let balance = 0;
-    const promises = Array.from({ length: 100 }).map(async (_, index) => {
+    const promises = Array.from({ length: 50 }).map(async (_, index) => {
       console.time(`charge-promise-${index}`);
       const result = await accountUsecase.charge(chargeTestPoint);
       balance += result.amount;

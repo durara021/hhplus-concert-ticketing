@@ -26,7 +26,7 @@ export class PaymentUsecase {
         return await this.dataSource.transaction(async (manager: EntityManager) => {
             //예약 확정
             const reservationReqModel = ReservationRequestModel.of({ id: command.reservationId, status: 'confirmed' });
-            await this.reservationService.updateStatus(reservationReqModel, manager);
+            await this.reservationService.book(reservationReqModel, manager);
 
             //계좌 point 차감
             await this.accountService.updateBalance(AccountRequestModel.of({ userId: command.userId, amount: command.amount, stat:'use' }), manager);

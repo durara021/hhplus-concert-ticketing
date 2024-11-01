@@ -11,6 +11,7 @@ export class ReservationRepository implements AbstractReservationRepository {
     manager.update(
       ReservationEntity,
       { 
+      
         mainCategory: reservationEntity.mainCategory,
         subCategory: reservationEntity.subCategory,
         minorCategory: reservationEntity.minorCategory,
@@ -35,13 +36,11 @@ export class ReservationRepository implements AbstractReservationRepository {
     ));
   }
 
-  async updateStatus(reservationEntity: ReservationRequestEntity, manager: EntityManager): Promise<ReservationResponseModel> {
-    await manager.update(ReservationEntity,
-      { id: reservationEntity.id }, 
-      { status: reservationEntity.status }
-    )
-
-    return ReservationResponseModel.of(await manager.findOne(ReservationEntity,{where: {id: reservationEntity.id}}));
+  async updateStatus(reservationEntity: ReservationEntity, manager: EntityManager): Promise<number> {
+    return (await manager.update(ReservationEntity,
+      { id: reservationEntity.id, version: reservationEntity.version, }, 
+      { status: reservationEntity.status, version: reservationEntity.version+1 }
+    )).affected
   }
   
   async updateStatuses(reservationEntity: ReservationRequestEntity, manager: EntityManager): Promise<void> {
@@ -55,7 +54,7 @@ export class ReservationRepository implements AbstractReservationRepository {
   async item(reservationEntity: ReservationRequestEntity, manager: EntityManager): Promise<ReservationResponseModel> {
     const reservation = await manager
         .createQueryBuilder(ReservationEntity, "reservation")
-        .setLock("pessimistic_write") // 비관적 락 설정
+        .setLock("pessimistic_write_or_fail") // 비관적 락 설정
         .where("reservation.mainCategory = :mainCategory", { mainCategory: reservationEntity.mainCategory })
         .andWhere("reservation.subCategory = :subCategory", { subCategory: reservationEntity.subCategory })
         .andWhere("reservation.minorCategory = :minorCategory", { minorCategory: reservationEntity.minorCategory })
@@ -76,7 +75,7 @@ export class ReservationRepository implements AbstractReservationRepository {
       }
     ));
   }
-
+  
   async itemsByStatus(reservationEntity: ReservationRequestEntity, manager: EntityManager): Promise<ReservationResponseModel[]> {
     return ReservationResponseModel.of(
       await manager.find(ReservationEntity,

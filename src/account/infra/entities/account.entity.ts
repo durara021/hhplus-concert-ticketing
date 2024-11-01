@@ -29,4 +29,5 @@ export class AccountEntity {
   constructor(partial: Partial<AccountEntity>) {
     Object.assign(this, partial);
   }
+
 }

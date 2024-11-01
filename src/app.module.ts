@@ -12,31 +12,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { QueueModule } from './queue/queue.module';
 import { CommonModule } from './common/common.module';
 import { GlobalExceptionFilter } from './common/exceptionFilter/exception.filter';
-import { ReservationEntity } from './reservation/infra/entities';
-import { ConcertEntity, ConcertPlanEntity } from './concert/infra/entities';
-import { PaymentEntity } from './payment/infra/entities';
-import { AccountEntity, AccountHistoryEntity } from './account/infra/entities';
-import { SessionEntity } from './session/infra/entities';
-import { QueueEntity } from './queue/infra/entities';
+import { baseDBConfig } from './db.config';
 
 @Module({
   imports: [
     ReservationModule, ConcertModule, PaymentModule,
-    AccountModule, SessionModule, QueueModule, CommonModule,
+    AccountModule, SessionModule, QueueModule, CommonModule, 
     TypeOrmModule.forRoot({
-      type: 'mysql',  // 사용하려는 데이터베이스 유형 (예: mysql, sqlite 등)
-      host: 'localhost', // 데이터베이스 호스트
-      port: 3306,        // 포트 번호
-      username: 'root',  // 데이터베이스 사용자 이름
-      password: 'qwe124!@$', // 데이터베이스 비밀번호
-      database: 'ticketing',  // 사용할 데이터베이스 이름
-      //entities: [ __dirname + '/entitiy/*.entity{.ts,.js}' ],  // 엔티티 배열
-      entities: [ ReservationEntity, ConcertEntity, ConcertPlanEntity, PaymentEntity, AccountEntity, AccountHistoryEntity, SessionEntity, QueueEntity ],  // 엔티티 배열
-      synchronize: true, // 개발 시 자동으로 스키마를 동기화 (생산 환경에서는 false로 설정 권장)
-      extra: {
-        connectionLimit: 20,
-      },
-      logging: true
+      ...baseDBConfig
     }),
   ],
   controllers: [AppController],

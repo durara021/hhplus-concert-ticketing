@@ -1,5 +1,6 @@
 import { TypeOrmModuleOptions } from "@nestjs/typeorm";
 
+console.log(__dirname);
 export const baseDBConfig: TypeOrmModuleOptions = {
   type: 'mysql',
   host: 'localhost',
@@ -7,10 +8,10 @@ export const baseDBConfig: TypeOrmModuleOptions = {
   username: 'root',
   password: 'qwe124!@$',
   database: 'ticketing',
-  entities: [__dirname + '/../entities/*.entity{.ts,.js}'],
+  entities: [__dirname + '/**/entities/*.entity{.ts,.js}'],
   synchronize: true,
   extra: {
-    connectionLimit: 100,
+    connectionLimit: 20,
   },
   logging: true,
 };

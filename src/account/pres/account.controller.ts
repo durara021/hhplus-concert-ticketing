@@ -13,7 +13,7 @@ export class AccountController {
   ) {}
 
 
-  @Patch('/:userId/points')
+  @Patch('/points')
   @ApiOperation({ summary: '금액 충전' }) 
   @ApiParam({ name: 'userId', description: '유저 id' })
   @ApiBody({ description: '충전 금액' })

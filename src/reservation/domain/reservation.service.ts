@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { ReservationRequestEntity, ReservationEntity } from '../infra/entities';
 import { AbstractReservationRepository } from './repository.interfaces';
 import { AbstractReservationService } from './service.interfaces/reservation.service.interface';
@@ -43,12 +43,21 @@ export class ReservationService implements AbstractReservationService{
     return manager ? executeReservation(manager) : this.dataSource.transaction(executeReservation);
   }
   
-  //상태 변경
-  async updateStatus(model: ReservationRequestModel, manager?: EntityManager): Promise<ReservationResponseCommand> {
+  //상태 확정
+  async book(model: ReservationRequestModel, manager?: EntityManager): Promise<ReservationResponseCommand> {
     const executeUpdateStatus = async (manager: EntityManager): Promise<ReservationResponseCommand> => {
-      const updateResult = await this.reservationRepository.updateStatus(ReservationRequestEntity.of(model), manager);
-      if(!updateResult) throw new ConflictException('상태 업데이트에 실패했습니다.');
-      return ReservationResponseCommand.of(updateResult);
+      //예약 확인
+      model.updateStatus('temp');
+      const item = await this.reservationRepository.item(ReservationRequestEntity.of(model), manager);
+      
+      if(!item) throw new NotFoundException("예약된 아이템이 없습니다..");
+
+      model.updateVersion(item.version);
+      model.updateStatus('confimed');
+      const updateResult = await this.reservationRepository.updateStatus(ReservationEntity.of(model), manager);
+      console.log("------------------------------------"+updateResult);
+      if(updateResult < 1 ) throw new InternalServerErrorException("이미 예약 완료된 아이템입니다.");
+      return ReservationResponseCommand.of(item);
     }
     return manager ? executeUpdateStatus(manager) : this.dataSource.transaction(executeUpdateStatus);
   }

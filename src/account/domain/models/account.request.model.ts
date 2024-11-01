@@ -72,4 +72,8 @@ export class AccountRequestModel {
     this.stat = newStat;
   }
 
+  updateVersion(newVersion: number) : void {
+    this.version = newVersion;
+  }
+
 }
