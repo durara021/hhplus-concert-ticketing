@@ -1,3 +1,5 @@
+# 📖 [동시성 제어 포인트 및 락에대한 보고서](https://github.com/durara021/hhplus-concert-ticketing/blob/master/%EB%8F%99%EC%8B%9C%EC%84%B1-%EB%9D%BD%20%EC%A0%9C%EC%96%B4%20%EA%B4%80%EB%A0%A8%20%EB%B3%B4%EA%B3%A0%EC%84%9C.md)
+
 # 🎟️ 시퀀스 다이어그램
 ### 대기열 입장
 ```mermaid
