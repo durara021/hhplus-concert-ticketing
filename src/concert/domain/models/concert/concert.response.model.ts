@@ -1,13 +1,12 @@
+import { ConcertPlanResponseCommand } from "src/concert/app/commands";
+
 type Part = Partial<ConcertResponseModel>;
 
 export class ConcertResponseModel {
-    id: number ;         // 콘서트seq
-    concertId: number ; // 콘서트 ID
-    concertDate: Date ; // 콘서트 일정
-    concertDates: Date[] = [] ;
-    concertSeats: number[] = [] ;
-    capacity: number ;  // 콘서트 정원
-    current:number ;    // 콘서트 예약 인원
+    concertId       : number;   // 콘서트 ID
+    concertTitle    : string;   // 콘서트 명
+    reservableDates   : { date: Date, isReservable: boolean }[] = [];        // 예약 가능일
+    
 
     // of 메서드: Partial 타입을 이용해 객체를 생성
     static of(partial: Part): ConcertResponseModel;
@@ -24,8 +23,8 @@ export class ConcertResponseModel {
         Object.assign(this, partial);
     }
 
-    updateConcertDates(newConcertDates: Date[]){
-        this.concertDates = newConcertDates;
+    updateReservableDates(reservableDates:{ date: Date, isReservable: boolean }[]){
+        this.reservableDates = reservableDates;
     }
 
 }

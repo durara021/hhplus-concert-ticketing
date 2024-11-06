@@ -1,14 +1,12 @@
 type Part = Partial<ConcertRequestModel>;
 
 export class ConcertRequestModel {
-  concertId: number;
-  concertSeats: number[] = [];
-  concertDate: Date;
-  concertPlanId: number;
-  capacity: number;
+  concertId       : number;         //콘서트ID
+  concertIds      : number[] = [];  //콘서트ID(복수)
+  concertPlanId       : number;         //콘서트ID
+  concertPlanIds  : number[] = [];  //콘서트 일정 ID(복수)
 
   // of 메서드: Partial 타입을 이용해 객체를 생성
-
   static of(partial: Part): ConcertRequestModel;
   static of(partial: Part[]): ConcertRequestModel[];
   static of(
@@ -23,7 +21,12 @@ export class ConcertRequestModel {
     Object.assign(this, partial);
   }
 
-  updateSeats(seats: number[]) {
-    this.concertSeats = seats
+  updateConcertIds(newConcertIds: number[]) {
+    this.concertIds = newConcertIds;
   }
+
+  updateConcertPlanIds(newConcertPlanIds: number[]) {
+    this.concertPlanIds = newConcertPlanIds;
+  }
+  
 }

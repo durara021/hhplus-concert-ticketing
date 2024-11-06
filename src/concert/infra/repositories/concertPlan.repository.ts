@@ -1,19 +1,21 @@
-import { EntityManager } from "typeorm";
+import { EntityManager, In } from "typeorm";
 import { Injectable } from "@nestjs/common";
 import { AbstractConcertPlanRepository } from "../../domain/repository.interfaces";
-import { InjectRepository } from "@nestjs/typeorm";
 import { ConcertPlanEntity } from "../entities";
-import { ConcertResponseModel } from "../../../concert/domain/models";
+import { ConcertPlanResponseModel, ConcertResponseModel } from "../../../concert/domain/models";
+import { ConcertPlanRequestEntity } from "../entities/concertPlan/concertPlan.request.entity";
 
 @Injectable()
 export class ConcertPlanRepository implements AbstractConcertPlanRepository {
 
-  async planInfo(concertPlanEntity:ConcertPlanEntity, manager:EntityManager): Promise<ConcertResponseModel | null> {
-    return ConcertResponseModel.of(await manager.findOne(ConcertPlanEntity, {where: { concertId: concertPlanEntity.concertId }}));
+  async planInfo(manager:EntityManager, concertPlanEntity:ConcertPlanRequestEntity): Promise<ConcertPlanResponseModel> {
+    return ConcertPlanResponseModel.of(await manager.findOne(ConcertPlanEntity, {where: { concertPlanId: concertPlanEntity.concertPlanId }}));
   }
 
-  async planInfos(concertPlanEntity:ConcertPlanEntity, manager:EntityManager): Promise<ConcertResponseModel[]> {
-    return ConcertResponseModel.of(await manager.find(ConcertPlanEntity, {where: {concertId: concertPlanEntity.concertId}}));
+  async planInfos(manager:EntityManager, concertPlanEntity?:ConcertPlanRequestEntity): Promise<ConcertPlanResponseModel[]> {
+    return concertPlanEntity 
+      ? ConcertPlanResponseModel.of(await manager.find(ConcertPlanEntity, {where: {concertId: In(concertPlanEntity.concertIds)}}))
+      : ConcertPlanResponseModel.of(await manager.find(ConcertPlanEntity));
   }
 
 }

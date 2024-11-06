@@ -1,9 +1,7 @@
 type Part = Partial<ConcertRequestCommand>;
 
 export class ConcertRequestCommand {
-  concertId: number;
-  concertPlanId: number;
-
+  concertId   : number;   //콘서트ID
   // of 메서드: Partial 타입을 이용해 객체를 생성
 
   static of(partial: Part): ConcertRequestCommand;
