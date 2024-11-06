@@ -15,12 +15,12 @@ export class ReservationRepository implements AbstractReservationRepository {
         mainCategory: reservationEntity.mainCategory,
         subCategory: reservationEntity.subCategory,
         minorCategory: reservationEntity.minorCategory,
-        version: reservationEntity.version,
+        //version: reservationEntity.version,
       },
       {
         status: reservationEntity.status,
         userId: reservationEntity.userId,
-        version: reservationEntity.version+1,
+        //version: reservationEntity.version+1,
       },
     );
   }
@@ -38,8 +38,8 @@ export class ReservationRepository implements AbstractReservationRepository {
 
   async updateStatus(reservationEntity: ReservationEntity, manager: EntityManager): Promise<number> {
     return (await manager.update(ReservationEntity,
-      { id: reservationEntity.id, version: reservationEntity.version, }, 
-      { status: reservationEntity.status, version: reservationEntity.version+1 }
+      { id: reservationEntity.id, /*version: reservationEntity.version,*/ }, 
+      { status: reservationEntity.status, /*version: reservationEntity.version+1*/ }
     )).affected
   }
   

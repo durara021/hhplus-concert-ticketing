@@ -32,8 +32,8 @@ export class ReservationEntity {
   @UpdateDateColumn()
   modDate: Date; // 상태 변경일
 
-  @Column({default: 0})
-  version: number;
+  //@Column({default: 0})
+  //version: number;
 
   // of 메서드: Partial 타입을 이용해 객체를 생성
   static of(partial: Part): ReservationEntity;

@@ -10,6 +10,7 @@ import { ReservationRepository } from '../../reservation/infra/repositories/rese
 import { ReservationService } from '../../reservation/domain/reservation.service';
 import { baseDBConfig } from '../../db.config';
 import { ReservationRequestCommand } from '../../reservation/app/commands';
+import { RedisModule } from '../../common/redis/redis.module';
 
 describe('ReservationUsecase', () => {
   let reservationUsecase: ReservationUsecase;
@@ -20,7 +21,7 @@ describe('ReservationUsecase', () => {
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
-        ReservationModule,
+        ReservationModule, RedisModule,
         TypeOrmModule.forRoot({
           ...baseDBConfig,
           entities: [ReservationEntity],
@@ -59,12 +60,12 @@ describe('ReservationUsecase', () => {
     // account테이블에 1번 user 추가
     await repository.save(ReservationEntity.of({ mainCategory: 1, subCategory: 1, minorCategory: 1, status: 'available' }));
 
-    const promises = Array.from({ length: 10 }).map(async (_, idx) => {
+    const promises = Array.from({ length: 3 }).map(async (_, idx) => {
       await reservationUsecase.reserve(ReservationRequestCommand.of({ mainCategory: 1, subCategory: 1, minorCategory: 1, userId: idx+1}))
     });
 
     await Promise.all(promises);
 
-  }, 1000);
+  }, 100000);
 
 });

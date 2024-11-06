@@ -59,7 +59,8 @@ describe('AccountUsecase', () => {
 
   it('포인트를 충전', async () => {
     // account테이블에 1번 user 추가
-    await repository.save(AccountEntity.of({ userId: 1, balance: 0, }));
+    const useId = AccountEntity.of({ userId: 1, balance: 0, });
+    await repository.save(useId);
 
     const chargeTestPoint = AccountRequestCommand.of({ userId: 1, amount: 10 });
 
@@ -74,7 +75,7 @@ describe('AccountUsecase', () => {
     await Promise.all(promises);
     console.timeEnd(`charge-promise-all`);
 
-    expect(balance).toEqual((await accountUsecase.point(new AccountRequestCommand({userId: 1}))).balance);
+    expect(balance).toEqual((await accountUsecase.point(new AccountRequestCommand(useId))).balance);
   }, 10000);
 
 });

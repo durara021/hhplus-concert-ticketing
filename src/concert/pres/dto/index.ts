@@ -1,1 +1,1 @@
-export * from "./concert.get.response.dto";
+export * from "./concert/concert.get.response.dto";
