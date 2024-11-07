@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, VersionColumn } from 'typeorm';
 
 type Part = Partial<AccountEntity>;
 
@@ -13,6 +13,9 @@ export class AccountEntity {
   @Column()
   balance: number; // 총액
 
+  @Column({default: 0})
+  version: number;
+
   static of(partial: Part): AccountEntity;
   static of(partial: Part[]): AccountEntity[];
   static of(
@@ -26,4 +29,5 @@ export class AccountEntity {
   constructor(partial: Partial<AccountEntity>) {
     Object.assign(this, partial);
   }
+
 }

@@ -3,7 +3,7 @@ type Part = Partial<PaymentRequestModel>;
 export class PaymentRequestModel {
     userId: number;
     reservationId: number;
-
+    version: number;
     // of 메서드: Partial 타입을 이용해 객체를 생성
 
     static of(partial: Part): PaymentRequestModel;

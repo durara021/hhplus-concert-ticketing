@@ -1,15 +1,15 @@
 import { Injectable } from "@nestjs/common";
-import { ConcertPlanEntity } from "../../infra/entities/concertPlan.entity";
-import { ConcertResponseModel } from "../models";
 import { EntityManager } from "typeorm";
+import { ConcertPlanRequestEntity } from "../../infra/entities";
+import { ConcertPlanResponseModel } from "../models";
 
 interface ConcertPlanRepositoryInterface{
-    planInfo(concertPlanEntity: ConcertPlanEntity, manager:EntityManager): Promise<ConcertResponseModel>;
-    planInfos(concertPlanEntity: ConcertPlanEntity, manager:EntityManager): Promise<ConcertResponseModel[]>;
+    planInfo(manager:EntityManager, concertPlanEntity: ConcertPlanRequestEntity): Promise<ConcertPlanResponseModel>;
+    planInfos(manager:EntityManager, concertPlanEntity?: ConcertPlanRequestEntity): Promise<ConcertPlanResponseModel[]>;
 }
 
 @Injectable()
 export abstract class AbstractConcertPlanRepository implements ConcertPlanRepositoryInterface{
-    abstract planInfo(concertPlanEntity: ConcertPlanEntity, manager:EntityManager): Promise<ConcertResponseModel>;
-    abstract planInfos(concertPlanEntity: ConcertPlanEntity, manager:EntityManager): Promise<ConcertResponseModel[]>;
+    abstract planInfo(manager:EntityManager, concertPlanEntity: ConcertPlanRequestEntity): Promise<ConcertPlanResponseModel>;
+    abstract planInfos(manager:EntityManager, concertPlanEntity?: ConcertPlanRequestEntity): Promise<ConcertPlanResponseModel[]>;
 }

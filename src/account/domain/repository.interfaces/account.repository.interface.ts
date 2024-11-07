@@ -4,12 +4,12 @@ import { AccountResponseModel } from "../models";
 import { EntityManager } from "typeorm";
 
 interface AccountRepositoryInterface{
-    update(accountEntity: AccountEntity, manager: EntityManager): Promise<AccountResponseModel>
-    point(accountEntity: AccountEntity, manager: EntityManager): Promise<AccountResponseModel>
+    update(accountEntity: AccountEntity, manager: EntityManager): Promise<number>
+    account(accountEntity: AccountEntity, manager: EntityManager): Promise<AccountResponseModel>
 }
 
 @Injectable()
 export abstract class AbstractAccountRepository implements AccountRepositoryInterface{
-    abstract update(accountEntity: AccountEntity, manager: EntityManager): Promise<AccountResponseModel>
-    abstract point(accountEntity: AccountEntity, manager: EntityManager): Promise<AccountResponseModel>
+    abstract update(accountEntity: AccountEntity, manager: EntityManager): Promise<number>
+    abstract account(accountEntity: AccountEntity, manager: EntityManager): Promise<AccountResponseModel>
 }

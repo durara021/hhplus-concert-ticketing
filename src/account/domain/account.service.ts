@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { DataSource, EntityManager } from 'typeorm';
 import { AccountEntity, AccountHistoryEntity } from '../infra/entities';
 import { AbstractAccountRepository, AbstractAccountHistoryRepository } from './repository.interfaces';
@@ -17,7 +17,7 @@ export class AccountService implements AbstractAccountService{
   
   async point(accountModel: AccountRequestModel): Promise<AccountResponseCommand> {
     return await this.dataSource.transaction(async (manager: EntityManager) => {
-      const currentAccount = await this.accountRepository.point(AccountEntity.of(accountModel), manager);
+      const currentAccount = await this.accountRepository.account(AccountEntity.of(accountModel), manager);
       if(!currentAccount) throw new NotFoundException("계좌 정보를 찾을 수 없습니다.");
       return AccountResponseCommand.of(currentAccount);
     });
@@ -27,11 +27,11 @@ export class AccountService implements AbstractAccountService{
   async updateBalance(accountModel: AccountRequestModel, manager?:EntityManager): Promise<AccountResponseCommand> {
     const executeUpdate = async (manager: EntityManager): Promise<AccountResponseCommand> => {
       //현재 계좌 조회
-      const currentAccount = await this.accountRepository.point(AccountEntity.of(accountModel), manager);
+      const currentAccount = await this.accountRepository.account(AccountEntity.of(accountModel), manager);
       if(!currentAccount) throw new NotFoundException("계좌 정보를 찾을 수 없습니다.");
 
-      if(accountModel.status === 'use' && currentAccount.balance < accountModel.amount) throw new Error('사용 가능한 포인트가 부족합니다.');
-      if(accountModel.status === 'charge') {
+      if(accountModel.stat === 'use' && currentAccount.balance < accountModel.amount) throw new Error('사용 가능한 포인트가 부족합니다.');
+      if(accountModel.stat === 'charge') {
         accountModel.updateBalance(accountModel.amount + currentAccount.balance);
       } else {
         accountModel.updateBalance(currentAccount.balance - accountModel.amount);
@@ -41,9 +41,10 @@ export class AccountService implements AbstractAccountService{
       const updateResult = await this.accountRepository.update(AccountEntity.of(accountModel), manager);
       
       //이력 추가
+      if(!updateResult) throw new ConflictException();
       await this.accountHistoryRepository.record(AccountHistoryEntity.of(accountModel), manager);
       
-      return AccountResponseCommand.of(updateResult);
+      return AccountResponseCommand.of(accountModel);
     }
     return manager ? executeUpdate(manager) : this.dataSource.transaction(executeUpdate);
   }

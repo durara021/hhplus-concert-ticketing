@@ -32,7 +32,7 @@ describe('UserService', () => {
     userService = module.get<UserService>(UserService);
   });
 
-  describe('유저 확인', () => {
+  describe('user 실패 케이스', () => {
     it('유저가 존재하지 않을 경우 NotFoundException을 던져야 한다', async () => {
       const userId = 1;
 

@@ -2,8 +2,8 @@ import { Controller, Get, Param } from '@nestjs/common';
 import { ConcertUsecase } from '../app/concert.use-case';
 import { ConcertGetResponseDto as ResGetDto } from './dto';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
-import { ConcertGetRequestDto } from './dto/concert.get.request.dto';
-import { ConcertRequestCommand } from '../app/commands/concert.request.command';
+import { ConcertGetRequestDto } from './dto/concert/concert.get.request.dto';
+import { ConcertRequestCommand } from '../app/commands/concert/concert.request.command';
 
 @ApiTags('콘서트 API')
 @Controller('concerts')
@@ -12,7 +12,6 @@ export class ConcertController {
   constructor(
     private readonly concertUsecase: ConcertUsecase,
   ) {}
-
 
   @Get('/:concertId/dates')
   @ApiOperation({ summary: '콘서트 날짜 조회' })

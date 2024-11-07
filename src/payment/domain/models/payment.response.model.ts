@@ -5,7 +5,8 @@ export class PaymentResponseModel {
   userId: number;
   reservationId: number;
   regDate: Date;
-
+  version: number;
+  
   // of 메서드: Partial 타입을 이용해 객체를 생성
   static of(partial: Part): PaymentResponseModel;
   static of(partial: Part[]): PaymentResponseModel[];

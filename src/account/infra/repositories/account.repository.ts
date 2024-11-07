@@ -7,16 +7,24 @@ import { AccountResponseModel } from "../../../account/domain/models";
 @Injectable()
 export class AccountRepository implements AbstractAccountRepository {
 
-  async update(accountEntity: AccountEntity, manager: EntityManager): Promise<AccountResponseModel> {
-    await manager.update(AccountEntity,
-      {userId: accountEntity.userId},
-      {balance: accountEntity.balance}
+  async update(accountEntity: AccountEntity, manager: EntityManager): Promise<number> {
+    const updateResult = await manager.update(
+      AccountEntity,
+      { userId: accountEntity.userId },
+      { balance: accountEntity.balance },
     );
 
-    return AccountResponseModel.of(await manager.findOne(AccountEntity, {where: {userId: accountEntity.userId}}));
+    return updateResult.affected;
   }
 
-  async point(accountEntity:AccountEntity, manager: EntityManager): Promise<AccountResponseModel> {
-    return AccountResponseModel.of(await manager.findOne(AccountEntity, {where : {userId: accountEntity.userId}}));
+  async account(accountEntity:AccountEntity, manager: EntityManager): Promise<AccountResponseModel> {
+    return AccountResponseModel.of(      
+      await manager.findOne(
+        AccountEntity,{
+          where : { userId: accountEntity.userId },
+          lock: { mode: 'pessimistic_write' },
+        }
+      )
+    );
   }
 }

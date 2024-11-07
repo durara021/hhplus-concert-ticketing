@@ -7,7 +7,7 @@ import { PaymentResponseModel } from "../../domain/models";
 @Injectable()
 export class PaymentRepository implements AbstractPaymentRepository {
   
-  async record(paymentEntity: PaymentEntity, manager: EntityManager): Promise<PaymentEntity> {
+  async record(paymentEntity: PaymentEntity, manager: EntityManager): Promise<PaymentResponseModel> {
     return PaymentResponseModel.of(await manager.save(paymentEntity));
   }
   

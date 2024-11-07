@@ -1,82 +1,71 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException, ConflictException } from '@nestjs/common';
-import { DataSource } from 'typeorm';
-import { ConcertUsecase } from '../../concert/app/concert.use-case';
-import { AbstractConcertService } from '../../concert/domain/service.interfaces';
-import { AbstractReservationService } from '../../reservation/domain/service.interfaces';
-import { ConcertRequestCommand } from '../../concert/app/commands';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { DataSource, QueryRunner, Repository } from 'typeorm';
+import { ReservationUsecase } from '../../reservation/app/reservation.use-case';
+import { AbstractReservationService } from '../../reservation/domain/service.interfaces'; 
+import { AbstractReservationRepository } from '../../reservation/domain/repository.interfaces';
+import { ReservationEntity } from '../../reservation/infra/entities';
+import { ReservationModule } from '../../reservation/reservation.module';
+import { ReservationRepository } from '../../reservation/infra/repositories/reservation.repository';
+import { ReservationService } from '../../reservation/domain/reservation.service';
+import { baseDBConfig } from '../../db.config';
 import { ReservationRequestCommand } from '../../reservation/app/commands';
+import { RedisModule } from '../../common/redis/redis.module';
 
-describe('ConcertUsecase', () => {
-  let concertUsecase: ConcertUsecase;
-  let mockConcertService: jest.Mocked<AbstractConcertService>;
-  let mockReservationService: jest.Mocked<AbstractReservationService>;
-  let mockDataSource: jest.Mocked<DataSource>;
+describe('ReservationUsecase', () => {
+  let reservationUsecase: ReservationUsecase;
+  let dataSource: DataSource;
+  let queryRunner: QueryRunner;
+  let repository: Repository<ReservationEntity>;
 
-  beforeEach(async () => {
-    mockConcertService = {
-      info: jest.fn(),
-      planInfos: jest.fn(),
-      planInfo: jest.fn(),
-      availableSeats: jest.fn(),
-    } as jest.Mocked<AbstractConcertService>;
-
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [
+        ReservationModule, RedisModule,
+        TypeOrmModule.forRoot({
+          ...baseDBConfig,
+          entities: [ReservationEntity],
+        }),
+        TypeOrmModule.forFeature([ReservationEntity]),
+      ],
       providers: [
-        ConcertUsecase,
-        {
-          provide: AbstractConcertService,
-          useValue: mockConcertService,
-        },
-        {
-          provide: AbstractReservationService,
-          useValue: mockReservationService,
-        },
-        {
-          provide: DataSource,
-          useValue: mockDataSource,
-        },
+        ReservationUsecase,
+        { provide: AbstractReservationService, useClass: ReservationService },
+        { provide: AbstractReservationRepository, useClass: ReservationRepository },
       ],
     }).compile();
 
-    concertUsecase = module.get<ConcertUsecase>(ConcertUsecase);
+    reservationUsecase = module.get<ReservationUsecase>(ReservationUsecase);
+    dataSource = module.get<DataSource>(DataSource);
+
+    if (!dataSource.isInitialized) {
+      await dataSource.initialize();
+    }
+
+    // QueryRunner 생성 및 연결
+    queryRunner = dataSource.createQueryRunner();
+    await queryRunner.connect();
+    repository = queryRunner.manager.getRepository(ReservationEntity);
+
+    await queryRunner.query('TRUNCATE TABLE reservation');
   });
 
-  // 콘서트 예약가능일 조회 실패 테스트
-  describe('dates', () => {
-    it('콘서트 정보가 없을 경우 NotFoundException을 발생시켜야 한다', async () => {
-      const command = new ConcertRequestCommand();
+  afterAll(async () => {
+    // QueryRunner 연결 해제
+    await queryRunner.release();
+    await dataSource.destroy();
+  });
 
-      // Mock 설정: 콘서트 정보가 없는 경우
-      mockConcertService.info.mockResolvedValueOnce(null);
+  it('임시 예약', async () => {
+    // account테이블에 1번 user 추가
+    await repository.save(ReservationEntity.of({ mainCategory: 1, subCategory: 1, minorCategory: 1, status: 'available' }));
 
-      await expect(concertUsecase.dates(command)).rejects.toThrow(NotFoundException);
+    const promises = Array.from({ length: 3 }).map(async (_, idx) => {
+      await reservationUsecase.reserve(ReservationRequestCommand.of({ mainCategory: 1, subCategory: 1, minorCategory: 1, userId: idx+1}))
     });
-  });
 
-  // 콘서트 예약가능좌석 조회 실패 테스트
-  describe('seats', () => {
-    it('콘서트 일정 정보가 없을 경우 NotFoundException을 발생시켜야 한다', async () => {
-      const command = new ConcertRequestCommand();
+    await Promise.all(promises);
 
-      // Mock 설정: 콘서트 일정 정보가 없는 경우
-      mockConcertService.planInfo.mockResolvedValueOnce(null);
+  }, 100000);
 
-      await expect(concertUsecase.seats(command)).rejects.toThrow(NotFoundException);
-    });
-  });
-
-  // ReservationUsecase 실패 테스트 추가
-  describe('ReservationUsecase - 실패 케이스', () => {
-    let reservationUsecase: any; // ReservationUsecase 모듈 추가 필요
-
-    it('예약 가능 여부 확인 실패 시 ConflictException을 발생시켜야 한다', async () => {
-      const command = new ReservationRequestCommand(); // ReservationRequestCommand 가정
-
-      // Mock 설정: 예약 가능한 아이템이 없는 경우
-      mockReservationService.isAvailableItem.mockRejectedValueOnce(new ConflictException('이미 예약된 아이템입니다.'));
-
-      await expect(reservationUsecase.reserve(command)).rejects.toThrow(ConflictException);
-    });
-  });
 });

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PaymentEntity } from '../infra/entities';
 import { AbstractPaymentRepository } from './repository.interfaces';
-import { AbstractPaymentService } from './payemnt.service.interfaces';
+import { AbstractPaymentService } from './service.interfaces';
 import { PaymentRequestModel } from './models';
 import { PaymentResponseCommand } from '../app/commands';
 import { DataSource, EntityManager } from 'typeorm';

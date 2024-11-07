@@ -1,17 +1,17 @@
-type Part = Partial<AccountCommand>;
+type Part = Partial<AccountRequestCommand>;
 
-export class AccountCommand {
+export class AccountRequestCommand {
     userId: number;
     amount: number;
   
     // of 메서드: Part 타입을 이용해 객체를 생성
-    static of(partial: Part): AccountCommand;
-    static of(partial: Part[]): AccountCommand[];
+    static of(partial: Part): AccountRequestCommand;
+    static of(partial: Part[]): AccountRequestCommand[];
     static of(
       partial: Part | Part[]
-    ): AccountCommand | AccountCommand[] {
-        if(Array.isArray(partial)) return partial.map(partial => AccountCommand.of(partial));
-        return new AccountCommand({ ...partial });
+    ): AccountRequestCommand | AccountRequestCommand[] {
+        if(Array.isArray(partial)) return partial.map(partial => AccountRequestCommand.of(partial));
+        return new AccountRequestCommand({ ...partial });
     }
   
     // 생성자에서 전개 연산자를 사용해 필드 초기화

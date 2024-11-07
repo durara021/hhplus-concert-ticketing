@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeor
 
 type Part = Partial<AccountHistoryEntity>;
 
-@Entity('accountHistory')
+@Entity('account_history')
 export class AccountHistoryEntity {
   
   @PrimaryGeneratedColumn()
