@@ -8,7 +8,7 @@ import * as jwt from 'jsonwebtoken';
 export class UserTokenService implements AbstractUserTokenService{
 
   constructor(
-    @Inject('TOKEN_CLIENT') private readonly redisClient: Redis
+    @Inject('REDIS_CLIENT') private readonly redisClient: Redis
   ) {}
 
   // 유저토큰 생성
@@ -18,13 +18,11 @@ export class UserTokenService implements AbstractUserTokenService{
     const issuedAt = Math.floor(Date.now() / 1000); // 등록 시간 (Unix 타임스탬프)
     const expiresIn = 1800; // 만료 시간 (초 단위)
     const expiryAt = issuedAt + expiresIn;
-    const inQueue = false;
 
     // JWT 생성 시 Payload에 필요한 정보 추가
     const serverPayload = {
       userId, uuid,       // useId, uuid
       issuedAt, expiryAt, // 등록시간 / 만료 시간
-      inQueue,            // 대기열 여부
     };
 
     const serverSecretKey = 'userToken-server-secret-key'; // 실제 환경에서는 환경변수로 관리
@@ -37,7 +35,6 @@ export class UserTokenService implements AbstractUserTokenService{
     const clientPayload = {
       uuid,               // uuid
       issuedAt, expiryAt, // 등록시간 / 만료 시간
-      inQueue,            // 대기열 여부
     };
     const clientSecretKey = 'userToken-client-secret-key'; // 실제 환경에서는 환경변수로 관리
     
