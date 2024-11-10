@@ -20,10 +20,10 @@ export class ConcertController {
     description: '성공',
     type: ResGetDto,
   })
-  concertDates(
+  async concertDates(
     @Param() params: ConcertGetRequestDto
-  ): Promise<ResGetDto> {
-    return this.concertUsecase.dates(ConcertRequestCommand.of(params));
+  ): Promise<ResGetDto[]> {
+    return ResGetDto.of(await this.concertUsecase.reservableDates(ConcertRequestCommand.of(params)));
   }
 
   @Get('/:concertId/dates/:date/seats')

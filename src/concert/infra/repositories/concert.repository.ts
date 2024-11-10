@@ -7,7 +7,7 @@ import { ConcertResponseModel } from "../../../concert/domain/models";
 @Injectable()
 export class ConcertRepository implements AbstractConcertRepository {
   
-  async info(concertEntity:ConcertEntity, manager: EntityManager): Promise<ConcertResponseModel | undefined> {
+  async info(manager: EntityManager, concertEntity:ConcertEntity): Promise<ConcertResponseModel | undefined> {
     return ConcertResponseModel.of(await manager.findOne(ConcertEntity, { where: { concertId: concertEntity.concertId } }));
   }
 

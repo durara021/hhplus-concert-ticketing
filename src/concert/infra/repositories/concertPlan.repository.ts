@@ -2,7 +2,7 @@ import { EntityManager, In } from "typeorm";
 import { Injectable } from "@nestjs/common";
 import { AbstractConcertPlanRepository } from "../../domain/repository.interfaces";
 import { ConcertPlanEntity } from "../entities";
-import { ConcertPlanResponseModel, ConcertResponseModel } from "../../../concert/domain/models";
+import { ConcertPlanResponseModel } from "../../domain/models";
 import { ConcertPlanRequestEntity } from "../entities/concertPlan/concertPlan.request.entity";
 
 @Injectable()

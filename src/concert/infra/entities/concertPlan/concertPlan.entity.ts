@@ -14,6 +14,9 @@ export class ConcertPlanEntity {
   concertDate: Date;  // 콘서트 일정
 
   @Column()
+  isReservatable: boolean; // 예약 가능 여부
+
+  @Column()
   capacity: number; // 콘서트 정원
 
   @Column()

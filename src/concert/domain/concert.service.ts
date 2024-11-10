@@ -1,11 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { DataSource, EntityManager } from 'typeorm';
-import { ConcertEntity, ConcertPlanRequestEntity, ConcertTicketEntity } from '../infra/entities';
-import { AbstractConcertRepository, AbstractConcertPlanRepository, AbstractConcertTicketRepository } from './repository.interfaces';
+import { ConcertEntity, ConcertPlanEntity, ConcertPlanRequestEntity, ConcertTicketRequestEntity } from '../infra/entities';
+import {
+  AbstractConcertRepository, AbstractConcertPlanRepository, AbstractConcertTicketRepository,
+  AbstractConcertCasheRepository, AbstractConcertPlanCasheRepository, AbstractConcertTicketCasheRepository
+} from './repository.interfaces';
 import { AbstractConcertService } from './service.interfaces';
-import { ConcertPlanResponseModel, ConcertRequestModel, ConcertResponseModel } from './models';
+import { ConcertPlanResponseModel, ConcertRequestModel, ConcertResponseModel, ConcertTicketModel } from './models';
+import { DataSource, EntityManager } from 'typeorm';
 import { ConcertResponseCommand } from '../app/commands';
-import { ConcertTicketModel } from './models/concertTicket/concertTicket.model';
 
 @Injectable()
 export class ConcertService implements AbstractConcertService{
@@ -14,6 +16,9 @@ export class ConcertService implements AbstractConcertService{
     private readonly concertRepository: AbstractConcertRepository,
     private readonly concertPlanRepository: AbstractConcertPlanRepository,
     private readonly concertTicketRepository: AbstractConcertTicketRepository,
+    private readonly concertCasheRepository: AbstractConcertCasheRepository,
+    private readonly concertPlanCasheRepository: AbstractConcertPlanCasheRepository,
+    private readonly concertTicketCasheRepository: AbstractConcertTicketCasheRepository,
     private readonly dataSource: DataSource,
   ) {}
  
@@ -21,26 +26,55 @@ export class ConcertService implements AbstractConcertService{
   async reservableDates(model:ConcertRequestModel, manager?: EntityManager): Promise<ConcertResponseCommand[]> {
     const executeDates = async (manager: EntityManager): Promise<ConcertResponseCommand[]> => {
 
-      let concertInfos: ConcertResponseModel[], concertPlans: ConcertPlanResponseModel[], concertTickets: ConcertTicketModel[];
+      let concerts: ConcertResponseModel[], concertPlans: ConcertPlanResponseModel[], concertTickets: ConcertTicketModel[];
       if(model.concertId) {
-        concertInfos.push(await this.concertRepository.info(manager, ConcertEntity.of(model)));
-        if(!concertInfos.length) throw new NotFoundException("콘서트 정보를 조회할 수 없습니다.");
+        const concertModel = ConcertEntity.of(model);
 
-        concertPlans = await this.concertPlanRepository.planInfos(manager, ConcertPlanRequestEntity.of(model));
-        if(!concertPlans.length) throw new NotFoundException("콘서트 일정을 조회할 수 없습니다.");
+        // 캐쉬에서 검색
+        const concertCasheInfo = await this.concertCasheRepository.info(concertModel);
+        if(concertCasheInfo) {
+          concerts.push(concertCasheInfo);
+        } else {
+          // 캐쉬에 데이터가 없는 경우
+          const concertInfos = await this.concertRepository.infos(manager);
+          if(!concertInfos) {
+            throw new NotFoundException("콘서트 정보를 조회할 수 없습니다.");
+          } else {
+            await this.concertCasheRepository.saveInfos(ConcertEntity.of(concertInfos));
+            concerts.push(concertInfos.find(info => info.concertId === model.concertId));
+          }
+        }
 
-        model.updateConcertPlanIds(concertPlans.map(concertPlan => concertPlan.concertPlanId));
-        concertTickets = await this.concertTicketRepository.ticketInfos(manager, ConcertTicketEntity.of(model));
-        if(!concertTickets.length) throw new NotFoundException("콘서트 티켓을 조회할 수 없습니다.");
+        const concertPlanModel = ConcertPlanRequestEntity.of(model);
+        const concertPlanCasheInfo = await this.concertPlanCasheRepository.planInfo(concertPlanModel);
+        if(concertPlanCasheInfo) {
+          concertPlans.push(concertPlanCasheInfo);
+        } else {
+          const concertPlanInfos = await this.concertPlanRepository.planInfos(manager);
+          if(!concertPlanInfos) {
+            throw new NotFoundException("콘서트 정보를 조회할 수 없습니다.");
+          } else {
+            await this.concertPlanCasheRepository.savePlanInfos(ConcertPlanEntity.of(concertPlanInfos));
+            concertPlans.push(concertPlanInfos.find(planInfo => planInfo.concertId === model.concertId));
+          }
+        }
 
       } else {
-        [ concertInfos, concertPlans, concertTickets ] = await Promise.all([
-          this.concertRepository.infos(manager),
-          this.concertPlanRepository.planInfos(manager),
-          this.concertTicketRepository.ticketInfos(manager),
+        [ concerts, concertPlans, ] = await Promise.all([
+          this.concertCasheRepository.infos(),
+          this.concertPlanCasheRepository.planInfos(),
         ]);
+        if(!concerts.length) {
+          const concertInfos = await this.concertRepository.infos(manager);
+          concerts = concertInfos;
+          this.concertCasheRepository.saveInfos(ConcertEntity.of(concertInfos));
+        }
+        if(!concertPlans.length) {
+          const concertPlanInfos = await this.concertPlanRepository.planInfos(manager);
+          concertPlans = concertPlanInfos;
+          this.concertPlanCasheRepository.savePlanInfos(ConcertPlanEntity.of(concertPlanInfos));
+        }
       }
-
 
       concertPlans.forEach(concertPlan =>{
         concertPlan.updateIsReservatable(
@@ -50,32 +84,40 @@ export class ConcertService implements AbstractConcertService{
         )
       });
       
-      concertInfos.forEach(concertInfo => {
-        concertInfo.updateReservableDates(
+      concerts.forEach(concert => {
+        concert.updateReservableDates(
           concertPlans
-            .filter(concertPlan => concertPlan.concertId === concertInfo.concertId && concertPlan.isReservatable)
+            .filter(concertPlan => concertPlan.concertId === concert.concertId && concertPlan.isReservatable)
             .map(concertPlan => ({ date: concertPlan.concertDate, isReservable: concertPlan.isReservatable }))
         )
       });
 
-      return ConcertResponseCommand.of(concertInfos);
+      return ConcertResponseCommand.of(concerts);
     }
     return manager ? executeDates(manager) : this.dataSource.transaction(executeDates);
   }
-
-  // 콘서트 정보 조회(단건)
+  
+  // 콘서트 예약 가능 티켓 조회
   async reservableSeats(model:ConcertRequestModel, manager?: EntityManager): Promise<ConcertResponseCommand> {
     const executeDates = async (manager: EntityManager): Promise<ConcertResponseCommand> => {
 
-      const concertInfo = await this.concertRepository.info(manager, ConcertEntity.of(model));
-      if(!concertInfo) throw new NotFoundException("콘서트 정보를 조회할 수 없습니다.");
+      let concertInfo = await this.concertCasheRepository.info(ConcertEntity.of(model));
+      if(!concertInfo) {
+        const concertInfos = await this.concertRepository.infos(manager);
+        await this.concertCasheRepository.saveInfos(ConcertEntity.of(concertInfos));
+        concertInfo = concertInfos.find(info => info.concertId === model.concertId);
+        if(!concertInfo) throw new NotFoundException("콘서트 정보를 조회할 수 없습니다.");
+      }
+      
+      let concertPlan = await this.concertPlanCasheRepository.planInfo(ConcertEntity.of(model));
+      if(!concertPlan) {
+        const concertPlanInfos = await this.concertPlanRepository.planInfos(manager);
+        await this.concertPlanCasheRepository.savePlanInfos(ConcertPlanEntity.of(concertPlanInfos));
+        concertPlan = concertPlanInfos.find(planInfo => planInfo.concertPlanId === model.concertPlanId);
+        if(!concertPlan) throw new NotFoundException("콘서트 일정 정보를 조회할 수 없습니다.");
+      }
 
-      const concertPlan = await this.concertPlanRepository.planInfo(manager, ConcertEntity.of(model));
-      if(!concertPlan) throw new NotFoundException("콘서트 일정을 조회할 수 없습니다.");
-
-      const concertTickets = await this.concertTicketRepository.ticketInfos(manager, ConcertTicketEntity.of(model));
-      if(!concertTickets.length) throw new NotFoundException("콘서트 좌석을 조회할 수 없습니다.");
-
+      const concertTickets = await this.concertTicketRepository.ticketInfos(manager, ConcertTicketRequestEntity.of(model));
 
       concertPlan.updateReservableTickets(
         concertTickets
