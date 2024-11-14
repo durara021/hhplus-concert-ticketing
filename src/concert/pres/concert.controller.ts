@@ -1,9 +1,10 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { ConcertUsecase } from '../app/concert.use-case';
-import { ConcertGetResponseDto as ResGetDto } from './dto';
+import { ConcertGetResponseDto, ConcertGetResponseDto as ResGetDto } from './dto';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ConcertGetRequestDto } from './dto/concert/concert.get.request.dto';
 import { ConcertRequestCommand } from '../app/commands/concert/concert.request.command';
+import { ConcertPlanGetResponseDto } from './dto/concertPlan/concertPlan.get.response.dto';
 
 @ApiTags('콘서트 API')
 @Controller('concerts')
@@ -22,7 +23,7 @@ export class ConcertController {
   })
   async concertDates(
     @Param() params: ConcertGetRequestDto
-  ): Promise<ResGetDto[]> {
+  ): Promise<ConcertGetResponseDto> {
     return ResGetDto.of(await this.concertUsecase.reservableDates(ConcertRequestCommand.of(params)));
   }
 
@@ -36,7 +37,7 @@ export class ConcertController {
   })
   concertSeats(
     @Param() params: ConcertGetRequestDto
-  ): Promise<ResGetDto> {
+  ): Promise<ConcertPlanGetResponseDto> {
     return this.concertUsecase.seats(ConcertRequestCommand.of(params));
   }
 

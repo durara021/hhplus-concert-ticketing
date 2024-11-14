@@ -17,10 +17,10 @@ export class ConcertTicketEntity {
     concertPlanId: number; // 콘서트 일정 ID
 
     @Column()
-    concertSeatNum: number; //콘서트 좌석번호
+    seatNumber: number; //콘서트 좌석번호
 
-    @Column()
-    concertDate: Date;  // 콘서트 일정
+    @Column({default: null})
+    userId: number;
 
     // of 메서드: Partial 타입을 이용해 객체를 생성
     static of(partial: Part): ConcertTicketEntity;

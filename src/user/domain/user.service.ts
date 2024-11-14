@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { UserEntity } from '../infra/entity.interfaces';
+import { UserEntity } from '../infra/entities';
 import { AbstractUserRepository } from './repository.interfaces';
 import { DataSource, EntityManager } from 'typeorm';
 

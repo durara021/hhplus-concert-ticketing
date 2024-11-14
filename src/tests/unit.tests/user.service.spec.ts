@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { UserService } from '../../user/domain/user.service';
 import { AbstractUserRepository } from '../../user/domain/repository.interfaces';
-import { UserEntity } from '../../user/infra/entity.interfaces';
+import { UserEntity } from '../../user/infra/entities';
 import { EntityManager } from 'typeorm';
 
 describe('UserService', () => {

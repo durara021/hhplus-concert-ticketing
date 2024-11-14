@@ -16,9 +16,8 @@ export class ConcertPlanGetResponseDto {
   @IsDateString()
   concertDate: Date;
 
-  @ApiProperty({ description: '콘서트 예약 가능 여부' })
-  @IsBoolean()
-  isReservatable  : boolean;  // 예약 가능 여부
+  @ApiProperty({ description: '예약 가능 좌석' })
+  reservableTickets?: { seat: number, isReservable: boolean }[] = [];
 
 
 

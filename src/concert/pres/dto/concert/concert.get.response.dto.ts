@@ -10,8 +10,7 @@ export class ConcertGetResponseDto {
   concertTitle: string;
   @ApiProperty({ description: '공연 예약 가능 날짜' })
   reservableDates?: { date: Date, isReservable: boolean }[] = [];
-  @ApiProperty({ description: '예약 가능 좌석' })
-  reservableTickets?: { seat: number, isReservable: boolean }[] = [];
+
   
   // of 메서드: Partial 타입을 이용해 객체를 생성
   static of(partial: Part): ConcertGetResponseDto;

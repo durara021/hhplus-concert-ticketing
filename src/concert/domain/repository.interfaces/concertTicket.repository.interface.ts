@@ -4,12 +4,11 @@ import { ConcertTicketRequestEntity, ConcertTicketEntity } from "../../infra/ent
 import { ConcertTicketModel } from "../models/concertTicket/concertTicket.model";
 
 interface ConcertTicketRepositoryInterface {
-    ticketInfo(manager:EntityManager, concertTicketEntity: ConcertTicketRequestEntity): Promise<ConcertTicketModel>;
-    ticketInfos(manager:EntityManager, concertTicketEntity: ConcertTicketRequestEntity): Promise<ConcertTicketModel[]>;
+    findById( concertTicketEntity: ConcertTicketRequestEntity, manager:EntityManager, ): Promise<ConcertTicketModel>;
+    find( concertTicketEntity?: ConcertTicketRequestEntity, manager?:EntityManager,): Promise<ConcertTicketModel[]>;
 }
 
-@Injectable()
 export abstract class AbstractConcertTicketRepository implements ConcertTicketRepositoryInterface {
-    abstract ticketInfo(manager:EntityManager, concertTicketEntity: ConcertTicketRequestEntity): Promise<ConcertTicketModel>;
-    abstract ticketInfos(manager:EntityManager, concertTicketEntity?: ConcertTicketRequestEntity): Promise<ConcertTicketModel[]>;
+    abstract findById( concertTicketEntity: ConcertTicketRequestEntity, manager:EntityManager,): Promise<ConcertTicketModel>;
+    abstract find( concertTicketEntity?: ConcertTicketRequestEntity, manager?:EntityManager,): Promise<ConcertTicketModel[]>;
 }

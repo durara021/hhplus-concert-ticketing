@@ -7,10 +7,9 @@ export let options = {
 };
 
 export default function () {
-    const url = 'http://localhost:3000/payments';  // 예약 API URL
+    const url = 'http://localhost:3000/accounts/points';  // 예약 API URL
     const payload = JSON.stringify({
         "amount" : 1000, // 각 요청마다 고유의 userId 부여
-        "reservationId" : 1,
         "userId" : 1,
     });
 
@@ -21,11 +20,11 @@ export default function () {
     };
 
     // 예약 요청 보내기
-    let res = http.post(url, payload, params);
+    let res = http.patch(url, payload, params);
 
     // 응답 상태와 시간 체크
     check(res, {
-        'is status 200 or 409': (r) => r.status === 201 || r.status === 409,  // 200: 예약 성공, 409: 이미 점유된 좌석
+        'is status 200 or 409': (r) => r.status === 200 || r.status === 409,  // 200: 예약 성공, 409: 이미 점유된 좌석
         'response time < 500ms': (r) => r.timings.duration < 500,
     });
 

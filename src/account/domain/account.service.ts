@@ -17,7 +17,7 @@ export class AccountService implements AbstractAccountService{
   
   async point(accountModel: AccountRequestModel): Promise<AccountResponseCommand> {
     return await this.dataSource.transaction(async (manager: EntityManager) => {
-      const currentAccount = await this.accountRepository.account(AccountEntity.of(accountModel), manager);
+      const currentAccount = await this.accountRepository.findById(AccountEntity.of(accountModel), manager);
       if(!currentAccount) throw new NotFoundException("계좌 정보를 찾을 수 없습니다.");
       return AccountResponseCommand.of(currentAccount);
     });
@@ -27,7 +27,7 @@ export class AccountService implements AbstractAccountService{
   async updateBalance(accountModel: AccountRequestModel, manager?:EntityManager): Promise<AccountResponseCommand> {
     const executeUpdate = async (manager: EntityManager): Promise<AccountResponseCommand> => {
       //현재 계좌 조회
-      const currentAccount = await this.accountRepository.account(AccountEntity.of(accountModel), manager);
+      const currentAccount = await this.accountRepository.findById(AccountEntity.of(accountModel), manager);
       if(!currentAccount) throw new NotFoundException("계좌 정보를 찾을 수 없습니다.");
 
       if(accountModel.stat === 'use' && currentAccount.balance < accountModel.amount) throw new Error('사용 가능한 포인트가 부족합니다.');
@@ -42,7 +42,7 @@ export class AccountService implements AbstractAccountService{
       
       //이력 추가
       if(!updateResult) throw new ConflictException();
-      await this.accountHistoryRepository.record(AccountHistoryEntity.of(accountModel), manager);
+      await this.accountHistoryRepository.save(AccountHistoryEntity.of(accountModel), manager);
       
       return AccountResponseCommand.of(accountModel);
     }
@@ -52,7 +52,7 @@ export class AccountService implements AbstractAccountService{
   // 이력 및 현재 금액 조회
   async history(accountModel: AccountRequestModel, manager?:EntityManager): Promise<AccountResponseCommand[]> {
     const executehistory = async (manager: EntityManager): Promise<AccountResponseCommand[]> => {
-      const historyResult = await this.accountHistoryRepository.history(AccountHistoryEntity.of(accountModel), manager);
+      const historyResult = await this.accountHistoryRepository.findBy(AccountHistoryEntity.of(accountModel), manager);
       if(!historyResult) throw new NotFoundException("계좌이력이 없습니다.");
 
       return AccountResponseCommand.of(historyResult);

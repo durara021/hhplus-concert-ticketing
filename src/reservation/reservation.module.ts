@@ -8,11 +8,10 @@ import { AbstractReservationRepository } from './domain/repository.interfaces';
 import { ReservationRepository } from './infra/repositories/reservation.repository';
 import { ReservationEntity } from './infra/entities';
 import { ReservationUsecase } from './app/reservation.use-case';
-import { CommonModule } from '../common/common.module';
 import { RedisModule } from '../common/redis/redis.module';
 
 @Module({
-  imports: [ TypeOrmModule.forFeature([ReservationEntity]), forwardRef(() => ConcertModule), CommonModule, RedisModule ],
+  imports: [ TypeOrmModule.forFeature([ReservationEntity]), forwardRef(() => ConcertModule), RedisModule ],
   controllers: [ ReservationController ],
   providers: [
     ReservationUsecase,

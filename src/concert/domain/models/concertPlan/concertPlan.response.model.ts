@@ -21,7 +21,14 @@ export class ConcertPlanResponseModel {
 
     // 생성자에서 전개 연산자를 사용해 필드 초기화
     constructor(partial: Partial<ConcertPlanResponseModel>) {
-        Object.assign(this, partial);
+        Object.assign(this, {
+            concertPlanId: partial.concertPlanId ? Number(partial.concertPlanId) : undefined,
+            concertId: partial.concertId ? Number(partial.concertId) : undefined,
+            concertDate: partial.concertDate ? new Date(partial.concertDate) : undefined,
+            isReservatable: partial.isReservatable !== undefined ? Boolean(partial.isReservatable) : false,
+            capacity: partial.capacity ? Number(partial.capacity) : 0,
+            current: partial.current ? Number(partial.current) : 0,
+        });
     }
 
     updateIsReservatable(newIsReservatable: boolean) {

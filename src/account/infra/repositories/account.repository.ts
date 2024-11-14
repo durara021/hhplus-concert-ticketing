@@ -17,7 +17,7 @@ export class AccountRepository implements AbstractAccountRepository {
     return updateResult.affected;
   }
 
-  async account(accountEntity:AccountEntity, manager: EntityManager): Promise<AccountResponseModel> {
+  async findById(accountEntity:AccountEntity, manager: EntityManager): Promise<AccountResponseModel> {
     return AccountResponseModel.of(      
       await manager.findOne(
         AccountEntity,{

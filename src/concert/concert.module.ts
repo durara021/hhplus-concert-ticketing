@@ -7,12 +7,9 @@ import { AbstractConcertService } from './domain/service.interfaces';
 import { ConcertService } from './domain/concert.service';
 import { ConcertEntity, ConcertPlanEntity, ConcertTicketEntity } from './infra/entities';
 import {
-  AbstractConcertRepository, AbstractConcertTicketCasheRepository, AbstractConcertTicketRepository,
-  AbstractConcertCasheRepository, AbstractConcertPlanCasheRepository, AbstractConcertPlanRepository,
+  AbstractConcertRepository, AbstractConcertPlanRepository, AbstractConcertTicketRepository,
 } from './domain/repository.interfaces';
-import { ConcertRepository, ConcertPlanRepository, ConcertTicketRepository,
-  ConcertCasheRepository, ConcertPlanCasheRepository, ConcertTicketCasheRepository,
-} from './infra/repositories';
+import { ConcertRepository, ConcertPlanRepository, ConcertTicketRepository, } from './infra/repositories';
 import { ReservationModule } from '../reservation/reservation.module';
 
 @Module({
@@ -23,9 +20,6 @@ import { ReservationModule } from '../reservation/reservation.module';
     { provide: AbstractConcertRepository, useClass: ConcertRepository },
     { provide: AbstractConcertPlanRepository, useClass: ConcertPlanRepository },
     { provide: AbstractConcertTicketRepository, useClass: ConcertTicketRepository },
-    { provide: AbstractConcertCasheRepository, useClass: ConcertCasheRepository },
-    { provide: AbstractConcertPlanCasheRepository, useClass: ConcertPlanCasheRepository },
-    { provide: AbstractConcertTicketCasheRepository, useClass: ConcertTicketCasheRepository },
     { provide: AbstractConcertService, useClass: ConcertService },
   ],
   exports: [AbstractConcertService],

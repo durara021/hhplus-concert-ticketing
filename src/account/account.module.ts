@@ -1,16 +1,15 @@
 import { Module } from '@nestjs/common';
-import { AccountService } from './domain/account.service';
-import { AccountController } from './pres/account.controller';
-import { AbstractAccountService } from './domain/service.interfaces';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AccountController } from './pres/account.controller';
+import { AccountUsecase } from './app/account.use-case';
+import { AbstractAccountService } from './domain/service.interfaces';
+import { AccountService } from './domain/account.service';
 import { AccountEntity, AccountHistoryEntity } from './infra/entities';
 import { AbstractAccountHistoryRepository, AbstractAccountRepository } from './domain/repository.interfaces';
 import { AccountHistoryRepository, AccountRepository } from './infra/repositories';
-import { AccountUsecase } from './app/account.use-case';
-import { CommonModule } from '../common/common.module';
 
 @Module({
-  imports: [ TypeOrmModule.forFeature([AccountEntity, AccountHistoryEntity]), CommonModule ],
+  imports: [ TypeOrmModule.forFeature([AccountEntity, AccountHistoryEntity]), ],
   controllers: [AccountController],
   providers: [
     AccountUsecase, 

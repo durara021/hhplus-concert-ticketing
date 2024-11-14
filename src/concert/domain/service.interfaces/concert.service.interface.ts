@@ -4,12 +4,12 @@ import { ConcertPlanResponseCommand, ConcertResponseCommand, ConcertTicketRespon
 import { EntityManager } from 'typeorm';
 
 interface ConcertServiceInterface  {
-  reservableDates(model:ConcertRequestModel, manager?: EntityManager): Promise<ConcertResponseCommand[]>
+  reservableDates(model:ConcertRequestModel, manager?: EntityManager): Promise<ConcertResponseCommand>
   reservableSeats(model:ConcertRequestModel, manager?: EntityManager): Promise<ConcertResponseCommand>
 }
 
 @Injectable()
 export abstract class AbstractConcertService implements ConcertServiceInterface {
-  abstract reservableDates(model:ConcertRequestModel, manager?: EntityManager): Promise<ConcertResponseCommand[]>
+  abstract reservableDates(model:ConcertRequestModel, manager?: EntityManager): Promise<ConcertResponseCommand>
   abstract reservableSeats(model:ConcertRequestModel, manager?: EntityManager): Promise<ConcertResponseCommand>
 } 

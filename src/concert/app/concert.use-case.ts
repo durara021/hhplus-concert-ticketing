@@ -3,6 +3,7 @@ import { ConcertGetResponseDto } from "../pres/dto";
 import { ConcertRequestCommand } from './commands'; 
 import { ConcertRequestModel } from '../domain/models';
 import { AbstractConcertService } from '../domain/service.interfaces';
+import { ConcertPlanGetResponseDto } from '../pres/dto/concertPlan/concertPlan.get.response.dto';
 
 @Injectable()
 export class ConcertUsecase {
@@ -12,15 +13,15 @@ export class ConcertUsecase {
     ) {}
 
     //콘서트 예약가능일 조회
-    async reservableDates(command: ConcertRequestCommand): Promise<ConcertGetResponseDto[]> {
+    async reservableDates(command: ConcertRequestCommand): Promise<ConcertGetResponseDto> {
         const model = ConcertRequestModel.of(command);
         const concertInfos = await this.concertService.reservableDates(model);
         return ConcertGetResponseDto.of(concertInfos);
     }
 
     //콘서트 예약가능좌석 조회
-    async seats(command: ConcertRequestCommand): Promise<ConcertGetResponseDto> {
+    async seats(command: ConcertRequestCommand): Promise<ConcertPlanGetResponseDto> {
         //콘서트/콘서트 일정 일정 검증
-        return ConcertGetResponseDto.of(await this.concertService.reservableSeats(ConcertRequestModel.of(command)));
+        return ConcertPlanGetResponseDto.of(await this.concertService.reservableSeats(ConcertRequestModel.of(command)));
     }
 }
