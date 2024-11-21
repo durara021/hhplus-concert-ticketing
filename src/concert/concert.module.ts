@@ -1,6 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { RedisModule } from 'src/common/redis/redis.module';
+import { RedisModule } from '../common/redis/redis.module';
 import { ConcertController } from './pres/concert.controller';
 import { ConcertUsecase } from './app/concert.use-case';
 import { AbstractConcertService } from './domain/service.interfaces';
