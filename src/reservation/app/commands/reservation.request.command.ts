@@ -1,6 +1,8 @@
 type Part = Partial<ReservationRequestCommand>;
 
 export class ReservationRequestCommand {
+    id: number;
+    eventId: number;
     mainCategory: number;
     subCategory: number;
     minorCategory: number;

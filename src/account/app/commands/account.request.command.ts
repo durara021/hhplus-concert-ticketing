@@ -3,7 +3,7 @@ type Part = Partial<AccountRequestCommand>;
 export class AccountRequestCommand {
     userId: number;
     amount: number;
-  
+    eventId: number;
     // of 메서드: Part 타입을 이용해 객체를 생성
     static of(partial: Part): AccountRequestCommand;
     static of(partial: Part[]): AccountRequestCommand[];

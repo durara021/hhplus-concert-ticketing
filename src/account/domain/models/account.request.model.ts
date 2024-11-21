@@ -4,6 +4,7 @@ type Part = Partial<AccountRequestModel>;
 
 export class AccountRequestModel {
   userId: number;
+  eventId: number;
   balance: number|null|undefined;
   amount: number;
   stat: string|null|undefined;

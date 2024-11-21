@@ -1,9 +1,11 @@
 import { Injectable } from "@nestjs/common";
-import { ReservationRequestEntity, ReservationEntity } from "../../infra/entities";
+import { ReservationRequestEntity, ReservationEntity, OutBoxEntity, InBoxEntity } from "../../infra/entities";
 import { ReservationResponseModel } from "../../domain/models";
 import { EntityManager } from "typeorm";
 
 interface ReservationRepositoryInterface{
+    saveOutBox(outboxEntity: OutBoxEntity, manager: EntityManager): Promise<void>
+    saveInBox(outboxEntity: InBoxEntity, manager: EntityManager): Promise<void>
     reserve(reservationEntity: ReservationEntity, manager: EntityManager): Promise<void>
     reservedItems(reservatioEntity: ReservationRequestEntity, manager: EntityManager): Promise<ReservationResponseModel[]>
     item(reservatioEntity: ReservationRequestEntity, manager: EntityManager): Promise<ReservationResponseModel>
@@ -14,6 +16,8 @@ interface ReservationRepositoryInterface{
 
 @Injectable()
 export abstract class AbstractReservationRepository implements ReservationRepositoryInterface{
+    abstract saveOutBox(outboxEntity: OutBoxEntity, manager: EntityManager): Promise<void>
+    abstract saveInBox(outboxEntity: InBoxEntity, manager: EntityManager): Promise<void>
     abstract reserve(reservationEntity: ReservationEntity, manager: EntityManager): Promise<void>
     abstract reservedItems(reservatioEntity: ReservationRequestEntity, manager: EntityManager): Promise<ReservationResponseModel[]>
     abstract item(reservatioEntity: ReservationRequestEntity, manager: EntityManager): Promise<ReservationResponseModel>

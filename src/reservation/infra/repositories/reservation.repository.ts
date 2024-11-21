@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { EntityManager, In, Not } from "typeorm";
-import { ReservationRequestEntity, ReservationEntity } from "../entities";
+import { ReservationRequestEntity, ReservationEntity, OutBoxEntity, InBoxEntity } from "../entities";
 import { AbstractReservationRepository } from "../../domain/repository.interfaces";
 import { ReservationResponseModel } from "../../domain/models"
 
@@ -50,6 +50,14 @@ export class ReservationRepository implements AbstractReservationRepository {
     )
   }
   
+  async saveOutBox(outboxEntity: OutBoxEntity, manager: EntityManager): Promise<void> {
+    await manager.save(outboxEntity);
+  }
+
+  async saveInBox(inBoxEntity: InBoxEntity, manager: EntityManager): Promise<void> {
+    await manager.save(inBoxEntity);
+  }
+
   /*
   async item(reservationEntity: ReservationRequestEntity, manager: EntityManager): Promise<ReservationResponseModel> {
     const reservation = await manager

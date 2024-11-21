@@ -6,11 +6,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AccountEntity, AccountHistoryEntity } from './infra/entities';
 import { AbstractAccountHistoryRepository, AbstractAccountRepository } from './domain/repository.interfaces';
 import { AccountHistoryRepository, AccountRepository } from './infra/repositories';
+import { OutBoxEntity } from './infra/entities/outbox.entity';
+import { KafkaModule } from '../common/kafka/kafka.module';
 import { AccountUsecase } from './app/account.use-case';
-import { CommonModule } from '../common/common.module';
 
 @Module({
-  imports: [ TypeOrmModule.forFeature([AccountEntity, AccountHistoryEntity]), CommonModule ],
+  imports: [
+    TypeOrmModule.forFeature([AccountEntity, AccountHistoryEntity, OutBoxEntity]),
+    KafkaModule,
+  ],
   controllers: [AccountController],
   providers: [
     AccountUsecase, 

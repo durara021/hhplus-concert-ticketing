@@ -18,4 +18,17 @@ export class ReservationUsecase {
 
         return ResPostDto.of(reserveResult);
     }
+
+    //임시 예약
+    async book(command: ReservationRequestCommand): Promise<void> {
+        //임시 예약
+        await this.reservationService.book(ReservationRequestModel.of(command));
+    }
+
+    //임시 예약
+    async rollBack(command: ReservationRequestCommand): Promise<void> {
+        //임시 예약
+        await this.reservationService.rollBack(ReservationRequestModel.of(command));
+    }
+
 }

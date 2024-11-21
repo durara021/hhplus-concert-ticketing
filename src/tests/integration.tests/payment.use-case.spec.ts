@@ -1,97 +1,129 @@
+// payment.e2e-spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { DataSource, QueryRunner, Repository } from 'typeorm';
+import { INestApplication } from '@nestjs/common';
+import { AppModule } from '../../app.module';
 import { PaymentUsecase } from '../../payment/app/payment.use-case';
-import { AbstractPaymentService } from '../../payment/domain/service.interfaces';
-import { AbstractPaymentRepository } from '../../payment/domain/repository.interfaces';
-import { PaymentEntity } from '../../payment/infra/entities';
+import { AccountController } from '../../account/pres/account.controller';
+import { ReservationController } from '../../reservation/pres/reservation.controller'; 
+import { Transport } from '@nestjs/microservices';
+import { PaymentRequestCommand } from '../../payment/app/commands';
+import { DataSource, QueryRunner, Repository } from 'typeorm';
 import { ReservationEntity } from '../../reservation/infra/entities';
-import { PaymentModule } from '../../payment/payment.module';
-import { PaymentRepository } from '../../payment/infra/payment.repositories/payment.repository';
-import { PaymentService } from '../../payment/domain/payment.service';
-import { baseDBConfig } from '../../db.config';
-import { PaymentRequestCommand } from '../../payment/app/commands'
-import { AccountEntity, AccountHistoryEntity } from '../../account/infra/entities';
-import { AbstractAccountService } from '../../account/domain/service.interfaces';
-import { AccountService } from '../../account/domain/account.service';
-import { AccountHistoryRepository, AccountRepository } from '../../account/infra/repositories';
-import { AbstractAccountHistoryRepository, AbstractAccountRepository } from '../../account/domain/repository.interfaces';
-import { AbstractReservationService } from '../../reservation/domain/service.interfaces';
-import { ReservationService } from '../../reservation/domain/reservation.service';
-import { ReservationRepository } from '../../reservation/infra/repositories/reservation.repository';
-import { AbstractReservationRepository } from '../../reservation/domain/repository.interfaces';
-import { AbstractQueueService } from '../../queue/domain/service.interfaces';
-import { QueueService } from '../../queue/domain/queue.service';
-import { QueueRepository } from '../../queue/infra/repositories/queue.repository';
-import { AbstractQueueRepository } from '../../queue/domain/repository.interfaces';
-import { QueueEntity } from '../../queue/infra/entities';
+import { AccountEntity } from '../../account/infra/entities';
 
-describe('PaymentUsecase', () => {
+describe('Kafka Integration Test', () => {
+  let app: INestApplication;
   let paymentUsecase: PaymentUsecase;
+  let accountController: AccountController;
+  let reservationController: ReservationController;
+
   let dataSource: DataSource;
   let queryRunner: QueryRunner;
-  let repository: Repository<ReservationEntity>;
+  let reservationRepository: Repository<ReservationEntity>;
   let accountRepository: Repository<AccountEntity>;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [
-        PaymentModule,
-        TypeOrmModule.forRoot({
-          ...baseDBConfig,
-          entities: [ PaymentEntity, AccountEntity, AccountHistoryEntity, ReservationEntity, QueueEntity ],
-        }),
-        TypeOrmModule.forFeature([ PaymentEntity, AccountEntity, AccountHistoryEntity, ReservationEntity, QueueEntity ]),
-      ],
-      providers: [
-        PaymentUsecase,
-        { provide: AbstractAccountService, useClass: AccountService },
-        { provide: AbstractAccountRepository, useClass: AccountRepository },
-        { provide: AbstractAccountHistoryRepository, useClass: AccountHistoryRepository },
-        { provide: AbstractReservationService, useClass: ReservationService },
-        { provide: AbstractReservationRepository, useClass: ReservationRepository },
-        { provide: AbstractPaymentService, useClass: PaymentService },
-        { provide: AbstractPaymentRepository, useClass: PaymentRepository },
-        { provide: AbstractQueueService, useClass: QueueService },
-        { provide: AbstractQueueRepository, useClass: QueueRepository },
-      ],
+      imports: [AppModule],
     }).compile();
 
+    app = module.createNestApplication();
+
     paymentUsecase = module.get<PaymentUsecase>(PaymentUsecase);
+    accountController = module.get<AccountController>(AccountController);
+    reservationController = module.get<ReservationController>(ReservationController);
+
+    // 메시지 수신 여부 확인을 위한 배열 추가
+    (accountController as any).receivedMessages = [];
+    (reservationController as any).receivedMessages = [];
+
+    // 오버라이드하여 메시지 저장
+    jest.spyOn(accountController, 'handlePaymentEvent').mockImplementation(async (message) => {
+      (accountController as any).receivedMessages.push(message);
+    });
+
+    jest.spyOn(reservationController, 'handlePaymentEvent').mockImplementation(async (message) => {
+      (reservationController as any).receivedMessages.push(message);
+    });
+
+    // 마이크로서비스 연결
+    app.connectMicroservice({
+      transport: Transport.KAFKA,
+      options: {
+        client: {
+          clientId: 'nestjs-kafka-client',
+          brokers: ['localhost:9094'],
+        },
+        consumer: {
+          groupId: 'nestjs-consumer-group',
+        },
+      },
+    });
+
+    await app.startAllMicroservices();
+    await app.init();
+
+    // KafkaProducerService의 onModuleInit 호출
+    await paymentUsecase.onModuleInit();
+
     dataSource = module.get<DataSource>(DataSource);
-
-    if (!dataSource.isInitialized) {
-      await dataSource.initialize();
-    }
-
-    // QueryRunner 생성 및 연결
     queryRunner = dataSource.createQueryRunner();
     await queryRunner.connect();
-    repository = queryRunner.manager.getRepository(ReservationEntity);
+
+    reservationRepository = queryRunner.manager.getRepository(ReservationEntity);
     accountRepository = queryRunner.manager.getRepository(AccountEntity);
 
+    // 데이터 초기화
     await queryRunner.query('TRUNCATE TABLE payment');
     await queryRunner.query('TRUNCATE TABLE account');
     await queryRunner.query('TRUNCATE TABLE reservation');
+    await queryRunner.query('TRUNCATE TABLE outbox');
+    await queryRunner.query('TRUNCATE TABLE inbox');
   });
 
   afterAll(async () => {
-    // QueryRunner 연결 해제
-    await queryRunner.release();
-    await dataSource.destroy();
+    await app.close();
   });
 
-  it('결재', async () => {
-    // account테이블에 1번 user 추가
-    await repository.save(ReservationEntity.of({ mainCategory: 1, subCategory: 1, minorCategory: 1, status: 'temp', userId: 1 }));
-    await accountRepository.save(AccountEntity.of({ userId: 1, balance: 100000, id: 1 }));
+  it('should send and receive a Kafka message', async () => {
+    const testMessage = {
+      userId: 1,
+      reservationId: 1,
+      amount: 10000,
+    };
 
-    const promises = Array.from({ length: 1 }).map(async (_, idx) => {
-      await paymentUsecase.pay(PaymentRequestCommand.of({ reservationId: 1, amount: 10000, userId: 1}));
-    });
+    // 데이터 삽입
+    await reservationRepository.save(
+      ReservationEntity.of({
+        mainCategory: 1,
+        subCategory: 1,
+        minorCategory: 1,
+        status: 'temp',
+        userId: 1,
+      }),
+    );
+  
+    await accountRepository.save(
+      AccountEntity.of({
+        userId: 1,
+        balance: 100000,
+      }),
+    );
 
-    await Promise.all(promises);
+    // 컨슈머가 준비될 때까지 대기
+    await new Promise((resolve) => setTimeout(resolve, 200));
 
-  }, 1000);
+    // 메시지 발행
+    await paymentUsecase.save(PaymentRequestCommand.of(testMessage));
 
+    // 메시지 처리 대기
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    const updatedAccount = await accountRepository.findOneBy({ userId: 1 });
+    const updatedReservation = await reservationRepository.findOneBy({ userId: 1 });
+    
+    // 결과 검증
+    expect(updatedAccount?.balance).toBe(90000); // 잔액 감소 확인
+    expect(updatedReservation?.status).toBe('confirmed'); // 예약 상태 변경 확인
+  });
 });
