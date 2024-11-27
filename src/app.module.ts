@@ -1,26 +1,26 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
-import { CacheModule, CacheStore } from '@nestjs/cache-manager';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ConfigModule } from '@nestjs/config';
 import { ReservationModule } from './reservation/reservation.module';
 import { ConcertModule } from './concert/concert.module';
 import { PaymentModule } from './payment/payment.module';
 import { AccountModule } from './account/account.module';
-import { SessionModule } from './session/session.module';
-import { SessionService } from './session/domain/session.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { QueueModule } from './queue/queue.module';
-import { CommonModule } from './common/common.module';
 import { GlobalExceptionFilter } from './common/exceptionFilter/exception.filter';
 import { baseDBConfig } from './db.config';
-import { redisStore } from 'cache-manager-redis-yet';
+import { UserTokenModule } from './userToken/userTocken.module';
+//import { AuthorizationGuard } from './common/guard/pres/authorization.controller';
+import { RedisModule } from './common/redis/redis.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 import Redis from 'ioredis';
 
 @Module({
   imports: [
-    ReservationModule, ConcertModule, PaymentModule,
-    AccountModule, SessionModule, QueueModule, CommonModule, 
+    AccountModule, ConcertModule, PaymentModule,
+    ReservationModule, UserTokenModule, RedisModule, 
     TypeOrmModule.forRoot({
       ...baseDBConfig
     }),
@@ -34,19 +34,29 @@ import Redis from 'ioredis';
         });
 
         return {
-          store: store as unknown as CacheStore,
+          store: store as unknown as CacheStorage,
           ttl: 5 * 60000, // 5 minutes (milliseconds)
         };
       },
     }),
+    ClientsModule.register([
+      {
+        name: 'KAFKA_SERVICE',
+        transport: Transport.KAFKA,
+        options: {
+          client: {
+            clientId: 'nestjs-client',
+            brokers: ['localhost:9094'], // Kafka 브로커 주소
+          },
+          consumer: {
+            groupId: 'nestjs-group', // 고유한 그룹 ID
+          },
+        },
+      },
+    ]),
   ],
   controllers: [AppController],
   providers: [
-    AppService, SessionService,
-    {
-      provide: APP_FILTER,
-      useClass: GlobalExceptionFilter, // 전역 필터로 등록
-    },
     {
       provide: 'REDIS_CLIENT',
       useFactory: () => {

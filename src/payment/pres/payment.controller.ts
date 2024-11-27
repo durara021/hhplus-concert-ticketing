@@ -22,7 +22,7 @@ export class PaymentController {
   pay(
     @Body() body: PaymentPostRequestDto
   ): Promise<ResPostDto> {
-    return this.paymentUsecase.pay(PaymentRequestCommand.of(body));
+    return this.paymentUsecase.save(PaymentRequestCommand.of(body));
   }
 
 }

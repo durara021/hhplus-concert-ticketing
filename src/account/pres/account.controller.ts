@@ -3,15 +3,17 @@ import { AccountUsecase } from '../app/account.use-case';
 import { AccountGetResponseDto, AccountPatchRequestDto, AccountPostResponseDto } from './dto';
 import { ApiBody, ApiCreatedResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { AccountRequestCommand } from '../app/commands/account.request.command';
+import { EventPattern, Payload } from '@nestjs/microservices';
 
 @ApiTags('계좌 API') 
 @Controller('accounts')
 export class AccountController {
   
+  public receivedMessages: any[] = []; // 메시지 저장 배열
+
   constructor(
     private readonly accountUsecase: AccountUsecase,
   ) {}
-
 
   @Patch('/points')
   @ApiOperation({ summary: '금액 충전' }) 
@@ -40,4 +42,22 @@ export class AccountController {
     return this.accountUsecase.point(AccountRequestCommand.of(body));
   }
 
+  @EventPattern('payment.success') // Kafka 토픽
+  async handlePaymentEvent(@Payload() message: any) {
+    this.accountUsecase.use(AccountRequestCommand.of({
+      userId : parseInt(message.userId),
+      amount : parseInt(message.amount),
+    }))
+    //console.log(`Received payment message with key "${key}":`, value);
+  }
+
+  @EventPattern('payment.fail') // Kafka 토픽
+  async handlePaymentRollbackEvent(@Payload() message: any) {
+    this.accountUsecase.use(AccountRequestCommand.of({
+      userId : parseInt(message.userId),
+      eventId : parseInt(message.eventId),
+    }))
+    //console.log(`Received payment message with key "${key}":`, value);
+  }
+  
 }

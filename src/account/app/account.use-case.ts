@@ -12,7 +12,6 @@ export class AccountUsecase {
   ) {}
 
   // 포인트 충전
-  
   async charge(accountCommand: AccountRequestCommand): Promise<ResPostDto> {
 
     const accountModel = AccountRequestModel.of(accountCommand);
@@ -23,6 +22,25 @@ export class AccountUsecase {
 
   }
     
+  // 포인트 충전
+  async use(accountCommand: AccountRequestCommand): Promise<ResPostDto> {
+
+    const accountModel = AccountRequestModel.of(accountCommand);
+    accountModel.updateStat('use');
+
+    // 모델을 DTO로 변환하여 반환
+    return ResPostDto.of(await this.accountService.updateBalance(accountModel));
+
+  }
+
+  // 포인트 충전
+  async rollBack(accountCommand: AccountRequestCommand): Promise<void> {
+
+    const accountModel = AccountRequestModel.of(accountCommand);
+    await this.accountService.rollBack(accountModel);
+
+  }
+  
   /*
      // 포인트 충전
   async charge(accountCommand: AccountRequestCommand): Promise<ResPostDto> {

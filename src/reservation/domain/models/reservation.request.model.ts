@@ -1,7 +1,7 @@
 export class ReservationRequestModel {
     id: number;                  // 예약 ID
-    ids: number[];
     userId: number;              // 사용자 ID
+    eventId: number;
     mainCategory: number;           // 대분류
     subCategory: number;            // 중분류
     minorCategory: number;          // 소분류
@@ -15,10 +15,6 @@ export class ReservationRequestModel {
     
     updateStatus(newStatus: string) {
         this.status = newStatus;
-    }
-
-    updateMinorCategories(newMinorCategories: number[]) {
-        this.minorCategories = newMinorCategories;
     }
 
     updateVersion(newVersion: number) {
